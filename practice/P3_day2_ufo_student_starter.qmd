@@ -1,0 +1,35 @@
+---
+title: "Untitled"
+format: html
+---
+
+
+```{python}
+#import sys
+#!{sys.executable} -m pip install requests
+# %%
+# The usuals
+import pandas as pd
+import polars as pl
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+```{python}
+# %%
+# UFO Sightings
+url = "https://byuistats.github.io/DS250-Course/Skill%20Builders/json_missing.json"
+df = pd.read_json(url)
+df_pl = pl.read_json('ufo_missing.json')
+df
+```
+
+We'll be loosely following the skill builder.
+Let's start by getting to know our data and any cleaning needed.
+
+
+```{python}
+
+```

@@ -1,0 +1,69 @@
+---
+title: "Untitled"
+format: html
+---
+
+Load your libraries:
+
+```{python}
+#import sys
+#!{sys.executable} -m pip install requests
+# %%
+# The usuals
+import pandas as pd
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+Let's create a toy dataset to practice on
+
+```{python}
+# %%
+# missing data
+df = (pd.DataFrame(
+    np.random.randn(5, 3), 
+    index=['a', 'c', 'e', 'f', 'h'],
+    columns=['one', 'two', 'three'])
+  .assign(
+    six = [np.nan, np.nan, 2, 2, 1],
+    seven = [4, 5, 5, np.nan, np.nan],
+    four = ['bar', '', 'bar', 'bar', np.nan], 
+    five = lambda x: x.one > 0
+)
+  )
+df
+```
+
+
+
+## Dealing with missing data
+
+
+## Write it out to JSON
+
+This code selects the first row of the dataset (all columns), and then writes it out to JSON.
+
+```{python}
+df.iloc[0:1, ].to_json
+```
+
+
+## Practice on the cars dataset
+
+First, let's read in the json file
+
+```{python}
+url = "https://github.com/byuidatascience/data4missing/raw/master/data-raw/mtcars_missing/mtcars_missing.json"
+cars_json = pd.read_json(url)
+cars_json
+```
+
+I recommend giving the dataset you will be cleaning/altering another name so that you don't overwrite the original
+
+```{python}
+#dup df for cleansing
+cars_json_clean = cars_json
+
+```

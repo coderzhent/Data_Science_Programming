@@ -1,0 +1,107 @@
+---
+title: "Stretch - Elliot"
+subtitle: "Unit 1 Stretch"
+author: "Ezekial Curran"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd
+import polars as pl
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+```{python}
+# df_url = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
+df = pd.read_csv("names_year.csv")
+
+# df_url_pl = pl.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv", infer_schema_length=100000)
+df_pl = pl.read_csv("names_year.csv", infer_schema_length=100000)
+```
+
+
+## QUESTION 1
+
+1. __Reproducing the Elliot chart from the assignmet page by using the names_year.csv file.__  
+
+```{python}
+# Pandas
+df_ell = df.query('name == ["Elliot"]')
+ell = (
+    ggplot(data=df_ell)
+    + geom_line(mapping = aes(x = 'year', y = 'Total', color='name'))
+    + scale_color_manual(values={'Elliot': 'blue'})
+    + scale_x_continuous(limits=[1950,2025], format = 'd', expand=[0,0])
+    + scale_y_continuous(format='d')
+    + labs(
+        title="Elliot... What?"
+    )
+    + theme(panel_grid=element_line(linetype=1, color = "white"),
+        panel_background=element_rect(fill="#e5ecf6", linetype=0),
+        axis_line_x=element_blank(),
+        axis_ticks_x=element_blank()
+        )
+    + geom_text(x = 1982, y = 1300, label="E.T. Released", hjust="right", size=6)
+    + geom_text(x = 1985, y = 1300, label="Second Released", hjust="left", size=6)
+    + geom_text(x = 2002, y = 1300, label="Third Released", hjust="left", size=6)
+    + geom_vline(xintercept=1982, color="red", linetype="dashed")
+    + geom_vline(xintercept=1985, color="red", linetype="dashed")
+    + geom_vline(xintercept=2002, color="red", linetype="dashed")
+)
+display(ell)
+ggsave(ell, filename="elliot_pandas.svg", path="./plots/")
+# Polars
+print(f"\nUsing Polars")
+df_ell_pl = df_pl.filter(pl.col('name').is_in(["Elliot"]))
+ell_pl = (
+    ggplot(data=df_ell_pl)
+    + geom_line(mapping = aes(x = 'year', y = 'Total', color='name'))
+    + scale_color_manual(values={'Elliot': 'blue'})
+    + scale_x_continuous(limits=[1950,2025], format = 'd', expand=[0, 0])
+    + scale_y_continuous(format='d')
+    + labs(
+        title="Elliot... What?"
+    )
+    + theme(panel_grid=element_line(linetype=1, color = "white"),
+        panel_background=element_rect(fill="#e5ecf6", linetype=0),
+        axis_line_x=element_blank(),
+        axis_ticks_x=element_blank()
+    )
+    + geom_text(x = 1982, y = 1300, label="E.T. Released", hjust="right", size=6)
+    + geom_text(x = 1985, y = 1300, label="Second Released", hjust="left", size=6)
+    + geom_text(x = 2002, y = 1300, label="Third Released", hjust="left", size=6)
+    + geom_vline(xintercept=1982, color="red", linetype="dashed")
+    + geom_vline(xintercept=1985, color="red", linetype="dashed")
+    + geom_vline(xintercept=2002, color="red", linetype="dashed")
+)
+display(ell_pl)
+# the sv is simply to suppress the output
+sv = ggsave(ell_pl, filename="elliot_polars.svg", path="./plots/")
+```
+
+<!-- ![](./plots/elliot_pandas.svg){fig-alt="Pandas implementation of name plot" width=120%}
+__Using Polars:__
+![](./plots/elliot_polars.svg){fig-alt="Polars implementation of name plot" width=120%} -->

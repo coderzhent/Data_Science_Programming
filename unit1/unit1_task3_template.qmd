@@ -1,0 +1,165 @@
+---
+title: "Client Report - Famous Names"
+subtitle: "Unit 1 Task 3"
+author: "Ezekial Curran"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd
+import polars as pl
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+```{python}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+# df_url = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
+df = pd.read_csv("names_year.csv")
+
+# df_url_pl = pl.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv", infer_schema_length=100000)
+df_pl = pl.read_csv("names_year.csv", infer_schema_length=100000)
+```
+
+
+
+## QUESTION 1
+
+<!-- Make sure at least one of your charts includes reference marks!! -->
+
+__Mary, Martha, Peter, and Paul are all Christian names. From 1920 - 2000, compare the name usage of each of the four names in a single chart. What trends do you notice? You must provide a chart. The years labels on your charts should not include a comma.__ 
+
+Mary had two spikes but has consistently declined since the mid-\`50's. Martha gradually declined from not a high point. Peter rose in popularity breifly but has slowly declined since the \`60's
+
+```{python}
+# Q1
+# Pandas
+df_quad = df.query('name == ["Mary", "Martha", "Peter"]')
+quad = (
+    ggplot(data=df_quad)
+        + geom_line(mapping = aes(x = 'year', y = 'Total', color='name'))
+        + scale_x_continuous(limits=[1920,2000], format = 'd')
+        + labs(
+          title="Frequency of Mary, Martha, Peter, and Paul",
+          subtitle="Frequency these names were given to babies in these years.",
+          x="Year",
+          y="Frequency",
+          color="Name"
+        )
+        # + geom_text(x = 1918, y = 47, label="Spanish Flu", hjust="left")
+        # + geom_segment(x = 1945, y = 65, xend = 1960, yend = 60, arrow=arrow(), color = "red")
+)
+display(quad)
+
+# Polars
+print(f"\nUsing Polars")
+df_quad_pl = df_pl.filter(pl.col('name').is_in(["Mary", "Martha", "Peter"]))
+quad_pl = (
+    ggplot(data=df_quad_pl)
+        + geom_line(mapping = aes(x = 'year', y = 'Total', color='name'))
+        + scale_x_continuous(limits=[1920,2000], format = 'd')
+        + labs(
+          title="Frequency of Mary, Martha, Peter, and Paul",
+          subtitle="Frequency these names were given to babies in these years.",
+          x="Year",
+          y="Frequency",
+          color="Name"
+        )
+        # + geom_text(x = 1918, y = 47, label="Spanish Flu", hjust="left")
+        # + geom_segment(x = 1945, y = 65, xend = 1960, yend = 60, arrow=arrow(), color = "red")
+)
+display(quad_pl)
+```
+
+
+## QUESTION 2
+
+1. __Think of a unique name from a famous movie. Plot the usage of that name and see how changes line up with the movie release. Does it look like the movie had an effect on usage? You must provide a chart. The years labels on your charts should not include a comma.__  
+
+After the movie _47 Ronin_ was released a sharp increase in the use of the name 'Ronin' is apparent. Following the movie of _The Last Samurai_ a slow increase in the use of the name 'Ronin' is present.
+
+```{python}
+# Q2
+# Pandas
+df_lotr = df.query('name == "Ronin"')
+lotr = (
+  ggplot(data=df_lotr)
+  + geom_line(mapping = aes(x='year', y='Total', color='name'))
+  + scale_x_continuous(format = 'd')
+  + geom_text(x = 2015, y = 125, label="47 Ronin", hjust="right")
+  + geom_segment(x = 2014, y = 150, xend = 2013, yend = 223, arrow=arrow(), color = "blue")
+  + geom_text(x = 2000, y = 125, label="The Last Samurai", hjust="left")
+  + geom_segment(x = 2002, y = 100, xend = 2003, yend = 26, arrow=arrow(), color = "blue")
+  + labs (
+    title="Frequency of Ronin",
+    subtitle="Frequency this name was given to babies over the years.",
+    x='Year',
+    y="Frequency",
+    color="Name"
+  )
+)
+display(lotr)
+# Polars
+print(f"Using Polars")
+df_lotr_pl = df_pl.filter(pl.col('name').is_in(["Ronin"]))
+lotr_pl = (
+  ggplot(data=df_lotr_pl)
+  + geom_line(mapping = aes(x='year', y='Total', color='name'))
+  + scale_x_continuous(format = 'd')
+  + geom_text(x = 2015, y = 125, label="47 Ronin", hjust="right")
+  + geom_segment(x = 2014, y = 150, xend = 2013, yend = 223, arrow=arrow(), color = "blue")
+  + geom_text(x = 2000, y = 125, label="The Last Samurai", hjust="left")
+  + geom_segment(x = 2002, y = 100, xend = 2003, yend = 26, arrow=arrow(), color = "blue")
+  + labs (
+    title="Frequency of Ronin",
+    subtitle="Frequency this name was given to babies over the years.",
+    x="Year",
+    y="Frequency",
+    color="Name"
+  )
+)
+
+
+display(lotr_pl)
+
+# Additional code for creating a dataframe of just names with columns based on the first initial
+uniq_pl = df_pl.sort("name").select("name").unique()
+names = uniq_pl.with_columns(pl.col('name').str.slice(0,1).alias("initial"))
+grouped = names.group_by("initial").agg(pl.col("name"))
+cols = {
+  row["initial"]: row["name"]
+  for row in grouped.iter_rows(named=True)
+}
+max_len = max(len(nms) for nms in cols.values())
+for key in cols:
+  cols[key] += [None] * (max_len - len(cols[key]))
+
+reshaped = pl.DataFrame(cols)
+trio = reshaped.select(["A", "X", "Z"])
+```
+
+

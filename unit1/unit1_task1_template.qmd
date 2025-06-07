@@ -1,0 +1,156 @@
+---
+title: "Client Report - Exploring Names"
+subtitle: "Unit 1 Task 1"
+author: "Ezekial Curran"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd
+import polars as pl
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+```{python}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+df_url = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
+df = pd.read_csv("names_year.csv")
+# infer_schema_length is specified so polars can figure out the datatypes, it assumes too early with this dataset and can be wrong
+df_pl_url = pl.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv", infer_schema_length=100000)
+df_pl = pl.read_csv("names_year.csv", infer_schema_length=100000)
+```
+
+## QUESTION 1
+
+__What was the earliest year that the name ‘Felisha’ was used?__
+
+1964
+
+```{python}
+# Q1
+# Pandas
+feli = df[df['name'] == 'Felisha']
+print(f"Earliest year 'Felisha' was used: {feli['year'].min()}")
+
+# Polars
+print(f"\nUsing Polars")
+feli_pl = df_pl.filter(pl.col('name') == 'Felisha')
+print(f"Earliest year 'Felisha' was used: {feli_pl['year'].min()}")
+
+```
+
+
+## QUESTION 2
+
+__What year had the most babies named 'David'? How many babies were named 'David' that year?__
+
+1955 was the year with the most babies named David and there were 64754.5 babies. Since it is impossible to have half a baby it would be worthwhile to simply ignore the decimal.
+
+```{python}
+# Q2
+# Pandas
+davi = df[df['name'] == 'David']
+most_dav = davi.loc[davi['Total'].idxmax()]
+print(f"Year with the most babies named 'David': {most_dav['year']}")
+print(f"How many babies were named 'David': {most_dav['Total']}")
+
+# Polars
+print(f"\nUsing Polars")
+davi_pl = df_pl.filter(pl.col('name') == 'David')
+most_dav_pl = davi_pl.sort('Total').tail(1)
+print(f"Year with the most babies named 'David': {most_dav_pl['year'][0]}")
+print(f"How many babies were named 'David': {most_dav_pl['Total'][0]}")
+```
+
+
+## QUESTION 3
+
+__What year did your name hit its peak? How many babies were named your name in that year?__
+
+My name technically doesn't show up once, but if I adjust to the common spelling my name had its peak in 2015 with 2748 babies given my name that year.
+
+```{python}
+# Q3
+# Pandas
+me = df[df['name'] == 'Ezekiel']
+most_me = me.loc[me['Total'].idxmax()]
+print(f"Year when my name hit its peak: {most_me['year']}")
+print(f"Number of babies given my name that year: {most_me['Total']}")
+
+# Polars
+print(f"\nUsing Polars")
+me_pl = df_pl.filter(pl.col('name') == 'Ezekiel')
+most_me_pl = me_pl.sort('Total').tail(1)
+print(f"Year when my name hit its peak: {most_me_pl['year'][0]}")
+print(f"Number of babies given my name that year: {most_me_pl['Total'][0]}")
+```
+
+
+
+## QUESTION 4
+
+__How many babies are named ‘Oliver’ in the state of Utah for all years?__  
+
+For all years the total number of babies named 'Oliver' in the state of Utah is 1704.
+
+```{python}
+# Q4
+# Pandas
+oli = df[df['name'] == 'Oliver']
+print(f"Total number of babies named 'Oliver' in Utah: {oli['UT'].sum()}")
+
+# Polars
+print(f"\nUsing Polars")
+oli_pl = df_pl.filter(pl.col('name') == 'Oliver').select('UT')
+print(f"Total number of babies named 'Oliver' in Utah: {oli_pl.sum().to_numpy()[0][0]}")
+```
+
+---
+
+## QUESTION 5
+
+__In the most recent year, what was the most common female name in Utah?__ 
+
+In the most recent year (2015), the most common female name in Utah was Emma.
+
+```{python}
+# Q5
+# Pandas
+fem_yr = df['year'].max()
+fem = df[df['year'] == fem_yr].sort_values(by='Total', ascending=False)
+display(fem.head(5))
+
+# Polars
+print(f"\nUsing Polars")
+fem_yr_pl = df_pl['year'].max()
+fem_pl = df_pl.filter(pl.col('year') == fem_yr_pl).sort('Total', descending=True)
+display(fem_pl.head(5))
+```
+
+
+---

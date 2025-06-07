@@ -1,0 +1,123 @@
+---
+title: "Client Report - BYU-Idaho Players and Comparing Teams"
+subtitle: "Unit 2 Task 2"
+author: "Ezekial Curran"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import polars as pl
+import numpy as np
+import sqlite3
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+sqlite_file = 'lahmansbaseballdb.sqlite'
+# this file must be in the same location as your .qmd or .py file
+con = sqlite3.connect(sqlite_file)
+```
+
+## QUESTION 1
+
+__Write an SQL query that provides playerID, yearID, and batting average for players with at least 1 at bat that year. Sort the table from highest batting average to lowest, and then by playerid alphabetically. Show the top 5 results in your report.__
+
+The players batting averages are perfect scores, but there may be nuances with this data since it is recorded on a per year and per player basis. If a player was only at bat once and hit the ball then they would have a perfect score for that year.
+
+```{python}
+# Include and execute your code here
+q = '''
+SELECT playerID, yearID, round(1.0 * H / AB, 3) as "Batting Average"
+FROM batting
+WHERE AB >= 1
+ORDER BY "Batting Average" DESC, playerID ASC
+LIMIT 5
+'''
+# Using Pandas
+res_bat = pd.read_sql_query(q, con)
+display(res_bat)
+# Using Polars
+print(f"Using Polars")
+res_bat_pl = pl.read_database(q,con)
+display(res_bat_pl)
+```
+
+
+## QUESTION 2
+
+__Use the same query as above, but only include players with at least 10 at bats that year. Print the top 5 results.__  
+
+When players had at least 10 at bats their batting averages were quite lower than compared to those who had fewer at bats. These players had batting averages sitting between the high 50% to mid 60%.
+
+```{python}
+# Include and execute your code here
+q10 = '''
+SELECT playerID, yearID, round(1.0 * H / AB, 3) as "Batting Average"
+FROM batting
+WHERE AB >= 10
+ORDER BY "Batting Average" DESC, playerID ASC
+LIMIT 5
+'''
+# Using Pandas
+res10_bat = pd.read_sql_query(q10, con)
+display(res10_bat)
+# Using Polars
+print(f"Using Polars")
+res10_bat_pl = pl.read_database(q10,con)
+display(res10_bat_pl)
+```
+
+
+## QUESTION 3
+
+__Now calculate the batting average for players over their entire careers (all years combined). Only include players with at least 100 at bats over their entire career, and print the top 5 results.__
+
+A players career batting average when they have been at bat at least 100 times throughout their career are quite low. The highest batting average was about 30% and it only went down from there.
+
+```{python}
+# Include and execute your code here
+q_career = '''
+SELECT playerID, yearID, round(AVG(1.0 * H / AB), 3) as "Batting Average"
+FROM batting
+GROUP BY playerID
+HAVING SUM(AB) >= 100
+LIMIT 5
+'''
+# Using Pandas
+res_career_bat = pd.read_sql_query(q_career, con)
+display(res_career_bat)
+# Using Polars
+print(f"Using Polars")
+res_career_bat_pl = pl.read_database(q_career,con)
+display(res_career_bat_pl)
+```
+
+
+The choice to round to three decimal places is consistent with baseball standards.

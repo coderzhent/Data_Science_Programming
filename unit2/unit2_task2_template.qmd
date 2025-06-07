@@ -1,0 +1,175 @@
+---
+title: "Client Report - BYU-Idaho Players and Comparing Teams"
+subtitle: "Unit 2 Task 2"
+author: "Ezekial Curran"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import polars as pl
+import numpy as np
+import sqlite3
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+sqlite_file = 'lahmansbaseballdb.sqlite'
+# this file must be in the same location as your .qmd or .py file
+con = sqlite3.connect(sqlite_file)
+```
+
+## QUESTION 1
+
+__Write an SQL query to create a new dataframe about baseball players who attended BYU-Idaho. The new table should contain five columns: playerID, schoolID, salary, and the yearID/teamID associated with each salary. Order the table by salary (highest to lowest) and print out the table in your report.__
+
+There were two BUY-I players that however only two actually ended up on a team, but the highest had a salary of 4 million.
+
+```{python}
+# Include and execute your code here
+q1 = '''
+SELECT cp.playerID, cp.schoolID, cp.yearID, s.teamID, MAX(s.salary) as "Salary"
+FROM collegeplaying as cp
+LEFT JOIN salaries as s
+  ON cp.playerID = s.playerID
+WHERE cp.schoolID == "idbyuid"
+GROUP BY cp.playerID
+ORDER BY s.salary DESC
+-- LIMIT 5
+'''
+# Using Pandas
+res_schl = pd.read_sql_query(q1, con)
+display(res_schl)
+# Using Polars
+print(f"Using Polars")
+res_schl_pl = pl.read_database(q1,con)
+display(res_schl_pl)
+```
+
+
+## QUESTION 2
+
+__Pick any two baseball teams and compare them using a metric of your choice (average salary, home runs, number of wins, etc). Be creative! Write an SQL query to get the data you need, then make a graph using Lets-Plot to visualize the comparison. What do you learn?__ 
+
+A battle of the Giants shows that the New York Giants do win more often than the San Francisco Giants do. However, the San Francisco Giants have far more homeruns. Regardless of the homeruns a team makes it is the wins that ultimately count.
+
+```{python}
+# Include and execute your code here
+q2 = '''
+SELECT name, SUM(W) as "Wins", SUM(L) as "Losses", SUM(G) as "Games", ROUND((1.0 * SUM(W) / SUM(G)), 3) as "Win Rate", SUM(HR) as "Homeruns", ROUND(AVG(attendance),0) as "Average Attendance"
+FROM teams
+WHERE name == "New York Giants" OR name == "San Francisco Giants"
+GROUP BY name
+'''
+# Using Pandas
+res_team = pd.read_sql_query(q2, con)
+display(res_team)
+# Using Polars
+print(f"Using Polars")
+res_team_pl = pl.read_database(q2,con)
+display(res_team_pl)
+```
+
+Win rates of the Giants' teams.
+
+```{python}
+best_team = (
+    ggplot(data=res_team_pl)
+        + geom_bar(mapping = aes(x = 'name', y = 'Win Rate', fill='name', color='name'), stat='identity')
+        + guides(color="none")
+        + labs(
+          title="Win ratio for Giants.",
+          subtitle="Shown for both Giant teams.",
+          x="Team",
+          y="Win Ratio",
+          fill='Team'
+        )
+        + theme(
+            panel_background=element_rect(fill='gray'),
+            plot_background=element_rect(fill='gray'),
+            panel_grid_major=element_rect(fill='gray'),
+            legend_background=element_rect(fill='gray'),
+            axis_text=element_text(color='white'),
+            axis_title=element_text(color='white'),
+            plot_title=element_text(color='white'),
+            plot_subtitle=element_text(color='white'),
+            legend_text=element_text(color='white'),
+            legend_title=element_text(color='white')
+        )
+)
+
+best_team
+
+
+# qt = '''
+# SELECT COUNT() as "Count", name
+# FROM teams
+# GROUP BY name
+# ORDER BY Count DESC, name
+# '''
+
+# # Using Pandas
+# res_temp = pd.read_sql_query(qt, con)
+# display(res_temp)
+# # Using Polars
+# print(f"Using Polars")
+# res_temp_pl = pl.read_database(qt, con)
+# display(res_temp_pl)
+```
+
+Homerun's of the Giants' teams.
+
+```{python}
+home_run_team = (
+    ggplot(data=res_team_pl)
+        + geom_bar(mapping = aes(x = 'name', y = 'Homeruns', fill='name', color='name'), stat='identity')
+        + guides(color="none")
+        + labs(
+          title="Homeruns for Giants.",
+          subtitle="Shown for both Giant teams.",
+          x="Team",
+          y="Homeruns",
+          fill='Team'
+        )
+        + theme(
+            panel_background=element_rect(fill='gray'),
+            plot_background=element_rect(fill='gray'),
+            panel_grid_major=element_rect(fill='gray'),
+            legend_background=element_rect(fill='gray'),
+            axis_text=element_text(color='white'),
+            axis_title=element_text(color='white'),
+            plot_title=element_text(color='white'),
+            plot_subtitle=element_text(color='white'),
+            legend_text=element_text(color='white'),
+            legend_title=element_text(color='white')
+        )
+)
+
+home_run_team
+```

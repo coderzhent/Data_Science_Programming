@@ -1,0 +1,233 @@
+---
+title: "Parctice"
+format: html
+---
+
+This is text!
+
+# Header
+
+## Sub-Header
+
+### sub sub-header
+
+__This is bold text!__
+
+_this is italics_
+
+- This is a bullet
+
+code:
+A keyboard shortcut to create a code cell: Ctrl + Shift + I
+
+
+```{python}
+# This is a comment
+print("Hello World")
+# The current code cell can be ran by pressing: Shift + Enter
+```
+
+To preview the html and build the html files click the preview button towards the top or press the keyboard shortcut: Ctrl + Shift + K
+
+<!-- This is a text comment that doesn't show up in the html -->
+
+############### Beginning Code ###############
+
+```{python}
+import pandas as pd
+import polars as pl
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+```{python}
+df = pd.read_csv('life-expectancy.csv')
+# The URL may encounter a certificate
+df_url = pd.read_csv("https://byui-cse.github.io/cse110-course/lesson11/life-expectancy.csv")
+```
+
+
+```{python}
+df
+```
+
+## Get to know your data
+
+Speed dating
+
+
+```{python}
+display(df.columns)
+display(df.shape)
+display(df.size)
+df.info()
+# df.describe()
+```
+
+How  many countries in the dataset?
+What is the range of years that is covered?
+
+
+```{python}
+print(f"Number of unique countries: {df['Entity'].nunique()}")
+print(f"Country counts: {df['Entity'].value_counts()}")
+```
+
+
+```{python}
+print(f"Range of years the data is collected: [{df['Year'].min()}, {df['Year'].max()}]")
+```
+
+```{python}
+# Data Table Operations
+
+# This passes a list of columns to access
+# df[['Entity', 'Code', 'Year']]
+ 
+# df.rename(columns={'Life expectancy (year)':'newname'})
+
+# Will show everything up to row 2 exclusively
+df[ :2]
+```
+
+
+## Subsetting columns and rows at the same time
+
+### Using loc
+
+<!-- Using the ` surrounding a word presents it like code -->
+`loc` uses names to refer to indices
+
+```{python}
+df.loc[11:23, 'Year']
+```
+
+### Using iloc
+
+`iloc` uses numbers to refer to column indices
+
+
+```{python}
+display(df.iloc[11:23, 3])
+display(df.iloc[0:4, [1,3]])
+display(df.iloc[0:4, : ])
+df.iloc[-2: , [1,3]]
+```
+
+## Getting a set of rows and columns based on conditions
+
+You can still use the square bracket approach
+
+
+```{python}
+# df['Entity'] == "Japan" is a list of True's and False's that is then passed to the dataframe
+df[df['Entity'] == "Japan"]
+df[df['Entity'].isin(["France", "Japan", "El Salvador"])]
+```
+
+The pandas command 'query' is another way, often "cleaner"
+
+
+```{python}
+df.query('Entity == "France"') # Just France
+df.query('Entity != "France"') # Everything but France
+df.query('Entity == ["France", "Japan", "Mexico"]') # All 3 of these
+```
+
+####### Day 2 - creating graphs #######
+
+Get a dataset of just the United States, rename the last column to say "Life"
+```{python}
+# df_US = df.query('Entity == "United States"').copy()
+# newname = "Life"
+# if newname in df_US.columns:
+#     print("Column already renamed!")
+# else:
+#     # {'Life expectancy (years)':'Life'} is a dictionary
+#     df_US.rename(columns={'Life expectancy (years)':'Life'})
+#     print('Column "Life expectancy (years)" has been renamed to "Life"')
+
+# A chained condensed method:
+df_US = (
+    df.query('Entity == "United States"')
+    .copy()
+    .rename(columns={'Life expectancy (years)':'Life'})
+    )
+```
+
+Create a plot of the life expectancies in the USA.
+
+```{python}
+lf_plt = (
+    ggplot(data = df_US,
+        mapping = aes(x = "Life")
+        ) + geom_histogram()
+)
+
+display(lf_plt)
+```
+
+Shw the trend of the life expectancies over time for the USA
+Only show the years 1900 and beyond
+
+```{python}
+expct = (
+    ggplot(data=df_US.query('Year > 1900'))
+        + geom_line(mapping = aes(x = 'Year', y = 'Life'))
+)
+
+display(expct)
+```
+
+Another way to solve this
+
+```{python}
+expct_alt = (
+    ggplot(data=df_US)
+        + geom_line(mapping = aes(x = 'Year', y = 'Life'))
+        + scale_x_continuous(limits=[1900,2025], format = 'd')
+        + geom_text(x = 1918, y = 47, label="Spanish Flu", hjust="left")
+        + geom_segment(x = 1945, y = 65, xend = 1960, yend = 60, arrow=arrow(), color = "red")
+)
+
+expct_alt
+```
+
+
+####### Day 3 #######
+
+Get a dataset that includes 3 countries (United States, and 2 of your other favorites)
+
+
+```{python}
+# The following do the same thing
+# df_tri = df[df['Entity'].isin(["United States", "Russia", "China"])].copy()
+df_tri = (
+    df.query('Entity == ["United States", "Russia", "China"]')
+    .rename(columns = {"Life expectancy (years)":"Life"})
+    .copy()
+)
+
+display(df_tri)
+```
+
+
+```{python}
+p = (
+    ggplot(data=df_tri,
+    mapping = aes(x = 'Year', y = "Life", color = "Entity")
+    )
+    + geom_line()
+    + scale_x_continuous(format="d")
+    + labs(
+        title="Life Expectancy for Russia, China, and the United States"
+    )
+    + theme(axis_title_x = element_blank(), 
+        plot_title=element_text(color="blue",
+            hjust = 0.5, size=34),
+            panel_grid=element_line(linetype=2, color = "pink"))
+)
+
+p
+```

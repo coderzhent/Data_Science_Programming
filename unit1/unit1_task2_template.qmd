@@ -1,0 +1,142 @@
+---
+title: "Client Report - What's in a Name?"
+subtitle: "Unit 1 Task 2"
+author: "Ezekial Curran"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd
+import polars as pl
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+```{python}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Pandas
+# Include and execute your code here
+# df_url = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
+df = pd.read_csv("names_year.csv")
+
+# Polars
+# df_url_pl = pl.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv", infer_schema_length=100000)
+df_pl = pl.read_csv("names_year.csv", infer_schema_length=100000)
+```
+
+## QUESTION 1
+
+<!-- Make sure at least one of your charts includes reference marks!! -->
+
+__How does your name at your birth year compare to its use historically? Your must provide a chart. The years labels on your charts should not include a comma.__ 
+
+My name at my birth year was more common than it had been previously. Since then the use of my name has increased significantly.
+
+```{python}
+# Q1
+# Pandas
+df_me = df.query('name == "Ezekiel"')
+me = (
+  ggplot(data=df_me)
+  + geom_line(mapping = aes(x = 'year', y = 'Total', color='name'))
+  + scale_x_continuous(format = 'd')
+  + geom_text(x = 1980, y = 1100, label="(1997, 425)", hjust="center")
+  + geom_segment(x = 1980, y = 1000, xend = 1997, yend = 425, arrow=arrow(), color = "blue")
+  + labs(
+    title="Frequency of My Name",
+    subtitle="Frequency my name was given to babies in these years.",
+    x="Year",
+    y="Frequency",
+    color="Name"
+  )
+)
+display(me)
+
+# Polars
+print(f"\nUsing Polars")
+df_me_pl = df_pl.filter(pl.col('name').is_in(["Ezekiel"]))
+me_pl = (
+  ggplot(data=df_me_pl)
+  + geom_line(mapping = aes(x = 'year', y = 'Total', color='name'))
+  + scale_x_continuous(format = 'd')
+  + geom_text(x = 1980, y = 1100, label="(1997, 425)", hjust="center")
+  + geom_segment(x = 1980, y = 1000, xend = 1997, yend = 425, arrow=arrow(), color = "blue")
+  + labs(
+    title="Frequency of My Name",
+    subtitle="Frequency my name was given to babies in these years.",
+    x="Year",
+    y="Frequency",
+    color="Name"
+  )
+)
+display(me_pl)
+```
+
+
+## QUESTION 2
+
+__If you talked to someone named Brittany on the phone, what is your guess of his or her age? What ages would you not guess? Try to justify your answer with whatever statistics knowledge you have. You must provide a chart. The years labels on your charts should not include a comma.__  
+
+My guess of the age of Brittany would be 34 years old or just somewhere between 30 and 40 years old. I would not guess ages younger or older than that range.
+
+```{python}
+# Q2
+# Pandas
+df_brit = df.query('name == "Brittany"')
+brit = (
+  ggplot(data=df_brit)
+  + geom_line(mapping = aes(x = 'year', y = 'Total', color='name'))
+  + scale_x_continuous(format = 'd')
+  + labs(
+    title="Frequency of Brittany",
+    subtitle="Frequency the name Brittany was given to babies.",
+    x="Year",
+    y="Frequency",
+    color="Name"
+  )
+)
+display(brit)
+
+# Polars
+print(f"\nUsing Polars")
+df_brit_pl = df_pl.filter(pl.col('name').is_in(["Brittany"]))
+brit_pl = (
+  ggplot(data=df_brit_pl)
+  + geom_line(mapping = aes(x = 'year', y = 'Total', color='name'))
+  + scale_x_continuous(format = 'd')
+  + labs(
+    title="Frequency of Brittany",
+    subtitle="Frequency the name Brittany was given to babies.",
+    x="Year",
+    y="Frequency",
+    color="Name"
+  )
+)
+display(brit_pl)
+```
+
+
+<!-- Make sure at least one of your charts includes reference marks!! -->

@@ -1,0 +1,349 @@
+---
+title: "Client Report - Delay Types"
+subtitle: "Unit 3 Stretch"
+author: "Ezekial Curran"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import polars as pl
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+flights_json = pl.read_json('flights_missing.json')
+```
+
+```{python}
+month_name = {
+    'January': 1,
+    'February': 2,
+    'March': 3,
+    'April': 4,
+    'May': 5,
+    'June': 6,
+    'July': 7,
+    'August': 8,
+    'September': 9,
+    'October': 10,
+    'November': 11,
+    'December': 12
+}
+
+month_id = {
+    1: 'January',
+    2: 'February',
+    3: 'March',
+    4: 'April',
+    5: 'May',
+    6: 'June',
+    7: 'July',
+    8: 'August',
+    9: 'September',
+    10: 'October',
+    11: 'November',
+    12: 'December'
+}
+
+flights_json = flights_json.with_columns(
+    pl.when(pl.col('airport_code') < pl.col('airport_code').shift(1))
+        .then()
+)
+```
+
+```{python}
+# Beginning of cleaning the data
+# Month dictionary:
+
+# First job:
+# fix months via airport codes
+# if airport code is less than previous then it is new month
+
+flights_json = flights_json.with_columns(
+    pl.col('month').replace({'Febuary': 'February'}).alias('month')
+)
+
+# If previous month is less than or equal to current then same year
+# If previous month is greater then new year else current year
+
+flights_json = flights_json.with_columns(
+    pl.when(not pl.col('year').is_null()).then(pl.col('year'))
+    .when()
+)
+
+null_years = flights_json['year'].is_null()
+for i in range(len(null_years)):
+    if null_years[i] == True:
+        temp_col = flights_json['year'].to_list()
+        if i == 0:
+            # print(f"Changed null at: {i}")
+            temp_col[i] = flights_json['year'][i + 1]
+        else:
+            # print(f"Changed null at: {i}")
+            temp_col[i] = flights_json['year'][i - 1]
+        flights_json = flights_json.with_columns(pl.Series('year', temp_col))
+
+# Fixing airport names:
+for i in range(len(flights_json['airport_name'])):
+    if flights_json['airport_name'][i] == "":
+        port = (
+            flights_json.filter((pl.col('airport_code') == flights_json['airport_code'][i]) & (pl.col('airport_name') != ""))
+            .select('airport_name')
+            .limit(1)
+            .item()
+        )
+        port_ID = (
+            flights_json.filter((pl.col('airport_code') == flights_json['airport_code'][i]) & (pl.col('airport_name') != ""))
+            .select('airport_code')
+            .limit(1)
+            .item()
+        )
+
+        flights_json = flights_json.with_columns(
+            pl.when(pl.col('airport_code') == port_ID)
+            .then(pl.lit(port))
+            .otherwise(pl.col('airport_name'))
+            .alias('airport_name')
+        )
+
+# Fixing time delays
+carrier_col = flights_json['minutes_delayed_carrier'].to_list()
+nas_col = flights_json['minutes_delayed_nas'].to_list()
+
+for i in range(len(flights_json['minutes_delayed_total'])):
+    if (carrier_col[i] == None) & (nas_col[i] == None):
+        val = flights_json['minutes_delayed_total'][i] - (
+            flights_json['minutes_delayed_late_aircraft'][i]
+            + flights_json['minutes_delayed_security'][i]
+            + flights_json['minutes_delayed_weather'][i]
+        )
+        carrier_col[i] = val / 2
+        nas_col[i] = val / 2
+    elif carrier_col[i] == None:
+        val = flights_json['minutes_delayed_total'][i] - (
+            flights_json['minutes_delayed_late_aircraft'][i]
+            + flights_json['minutes_delayed_security'][i]
+            + flights_json['minutes_delayed_weather'][i]
+            + flights_json['minutes_delayed_nas'][i]
+        )
+        carrier_col[i] = val
+    elif nas_col[i] == None:
+        val = flights_json['minutes_delayed_total'][i] - (
+            flights_json['minutes_delayed_late_aircraft'][i]
+            + flights_json['minutes_delayed_security'][i]
+            + flights_json['minutes_delayed_weather'][i]
+            + flights_json['minutes_delayed_carrier'][i]
+        )
+        nas_col[i] = val
+
+flights_json = flights_json.with_columns(pl.Series('minutes_delayed_carrier', carrier_col, dtype=pl.Float64), pl.Series('minutes_delayed_nas', nas_col, dtype=pl.Float64))
+
+col_sz = len(flights_json['month'])
+flight_months = flights_json['month'].to_list()
+mon_dic = {0: "January", 1: "February", 2: "March", 3: "April", 4: "May", 5: "June", 6: "July", 7: "August", 8: "September", 9: "October", 10: "November", 11: "December"}
+
+cur_mon = 0
+for i in range(col_sz):
+    code = flights_json['airport_code'][i]
+    if i == col_sz - 1:
+        flight_months[i] = mon_dic[cur_mon]
+    elif flights_json['airport_code'][i] > flights_json['airport_code'][i + 1]:
+        flight_months[i] = mon_dic[cur_mon]
+        cur_mon = 0 if cur_mon == 11 else cur_mon + 1
+    else:
+        flight_months[i] = mon_dic[cur_mon]
+
+flights_json = flights_json.with_columns(pl.Series('month', flight_months))
+
+car_delay = flights_json['num_of_delays_carrier'].to_list()
+air_delay = flights_json['num_of_delays_late_aircraft'].to_list()
+
+for i in range(len(flights_json['num_of_delays_total'])):
+    if (car_delay[i] == '1500+') & (air_delay[i] == -999.0):
+        val = flights_json['num_of_delays_total'][i] - (
+            flights_json['num_of_delays_weather'][i]
+            + flights_json['num_of_delays_security'][i]
+            + flights_json['num_of_delays_nas'][i]
+        )
+
+        # val2 = val - (val // 2)
+        val2 = int(flights_json.filter(pl.col('num_of_delays_late_aircraft') >= 0).select(pl.col('num_of_delays_late_aircraft').mean().alias('delay_mean'))['delay_mean'][0])
+
+        # val2 should be the mean of that column
+
+        if val - val2 <= 1500:
+            car_delay[i] = 1501
+            air_delay[i] = val - 1501
+        else:
+            car_delay[i] = val - val2
+            air_delay[i] = val2
+    elif air_delay[i] == -999.0:
+        val = flights_json['num_of_delays_total'][i] - (
+            flights_json['num_of_delays_weather'][i]
+            + flights_json['num_of_delays_security'][i]
+            + flights_json['num_of_delays_nas'][i]
+            + int(flights_json['num_of_delays_carrier'][i])
+        )
+        air_delay[i] = val
+    elif car_delay[i] == '1500+':
+        val = flights_json['num_of_delays_total'][i] - (
+            flights_json['num_of_delays_weather'][i]
+            + flights_json['num_of_delays_security'][i]
+            + flights_json['num_of_delays_nas'][i]
+            + flights_json['num_of_delays_late_aircraft'][i]
+        )
+        car_delay[i] = val
+
+car_delay_flt = [float(x) for x in car_delay]
+
+flights_json = flights_json.with_columns(pl.Series('num_of_delays_carrier', car_delay_flt, dtype=pl.Float64), pl.Series('num_of_delays_late_aircraft', air_delay, dtype=pl.Float64))
+
+# print(flights_json.tail(5))
+```
+
+## QUESTION 1
+
+__Which delay is the worst delay?__ Build on the analysis you already did regarding Weahter Delay. This time though, instead of comparing one type of delay across multiple airports, we want to compare Weather Delay (an involved calculation that you already did in a previous task) with Carrier Delay and Security Delay (both of which are in the dataset and don’t need fancy calculations like Weather did). Compare the proportion of delay for each of the three categories in a Chart and a Table. Describe your results.
+
+Weather delays make up 73% of all delays, whereas security delays make up less than 1%. Carrier delays result in a little over a quarter of the delays people encounter while flying.
+
+```{python}
+# delays / flights
+flights_json = flights_json.with_columns(
+    pl.sum_horizontal(['num_of_delays_late_aircraft', 'num_of_delays_nas', 'num_of_delays_weather']).alias('total_weather_delays'),
+    (pl.col('num_of_delays_total') / pl.col('num_of_flights_total')).alias('delay_ratio')
+)
+
+flights_json = flights_json.with_columns(
+    (pl.col('total_weather_delays') / pl.col('num_of_delays_total')).alias('weather_delay_ratio'),
+    (pl.col('num_of_delays_security') / pl.col('num_of_delays_total')).alias('security_delay_ratio'),
+    (pl.col('num_of_delays_carrier') / pl.col('num_of_delays_total')).alias('carrier_delay_ratio')
+)
+```
+
+```{python}
+delays = flights_json.select(
+    [
+    pl.col('weather_delay_ratio').mean(),
+    pl.col('security_delay_ratio').mean(),
+    pl.col('carrier_delay_ratio').mean()
+    ]
+)
+
+# Need to convert the results DataFrame into long format for ggplot, this is identicle to the .melt() function, however melt is depricated
+delays_lf = delays.unpivot(index=[], variable_name='columns', value_name='values')
+
+delays_lf = delays_lf.sort('values', descending=True)
+
+delays_lf
+
+```
+
+```{python}
+delay_bar = (
+    ggplot(data=delays_lf)
+        + geom_bar(mapping = aes(x = 'columns', y = 'values', fill='columns', color='columns'), stat='identity', labels=layer_labels().line('@values').size(18))
+        + guides(color="none")
+        + labs(
+          title="Proportion of total delays by type.",
+          subtitle="The value represents the proprotion the delay is of total delays.",
+          x="Delay",
+          y="Delay Proportion",
+          fill='Delay Types'
+        )
+        + theme(
+            panel_background=element_rect(fill='gray'),
+            plot_background=element_rect(fill='gray'),
+            panel_grid_major=element_rect(fill='gray'),
+            legend_background=element_rect(fill='gray'),
+            axis_text=element_text(color='white'),
+            axis_title=element_text(color='white'),
+            plot_title=element_text(color='white'),
+            plot_subtitle=element_text(color='white'),
+            legend_text=element_text(color='white'),
+            legend_title=element_text(color='white'),
+            label_text=element_text(color='white')
+        )
+        + ggsize(1600, 900)
+)
+
+delay_bar
+```
+
+## Question 2
+
+__Create another chart that shows the proportion of delays for each reason (Weather, Carrier, and Security) across all 7 airports. Describe your results.__
+
+For all airports the biggest contributor to delays is the weather. Some airports are more impacted by weather delays than by carrier compared to other airports and vice versa.
+
+```{python}
+delay_airport = flights_json.group_by('airport_code').agg(
+    [
+    pl.col('weather_delay_ratio').mean(),
+    pl.col('security_delay_ratio').mean(),
+    pl.col('carrier_delay_ratio').mean()
+    ]
+)
+
+delay_airport_lf = delay_airport.unpivot(index='airport_code', variable_name='delay', value_name='value')
+
+delay_airport
+```
+
+
+```{python}
+delay_air_bar = (
+    ggplot(data=delay_airport_lf)
+        + geom_bar(mapping = aes(x = 'airport_code', y = 'value', fill='delay', color='delay'), stat='identity', position='dodge')
+        + guides(color="none")
+        + labs(
+          title="Proportion of total delays by type.",
+          subtitle="The value represents the proprotion the delay is of total delays.",
+          x="Delay",
+          y="Delay Proportion",
+          fill='Delay Types'
+        )
+        + geom_text(aes(x = 'airport_code', y = 'value', label = 'value'), size=8, nudge_y=0.02, color='white')
+        + theme(
+            panel_background=element_rect(fill='gray'),
+            plot_background=element_rect(fill='gray'),
+            panel_grid_major=element_rect(fill='gray'),
+            legend_background=element_rect(fill='gray'),
+            axis_text=element_text(color='white'),
+            axis_title=element_text(color='white'),
+            plot_title=element_text(color='white'),
+            plot_subtitle=element_text(color='white'),
+            legend_text=element_text(color='white'),
+            legend_title=element_text(color='white'),
+            label_text=element_text(color='white')
+        )
+        + ggsize(1600, 960)
+)
+
+delay_air_bar
+```

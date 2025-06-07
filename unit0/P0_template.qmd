@@ -1,0 +1,175 @@
+---
+title: "Client Report - Project 0: Introduction"
+subtitle: "Course DS 250"
+author: "[STUDENT NAME]"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd
+import polars as pl
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+from palmerpenguins import load_penguins
+```
+
+## QUESTION|TASK 1
+
+__Include the tables created from [PY4DS: CH2 Data Visualization](https://aeturrell.github.io/python4DS/data-visualise.html) used to create the above chart (Hint: copy the code from 2.2.1. The penguins data frame and paste each in the cells below)__
+
+
+```{python}
+# Include and execute your code here
+
+df = load_penguins()
+df
+```
+
+_include figures in chunks and discuss your findings in the figure._
+
+```{python}
+# Include and execute your code here
+df.head()
+
+```
+
+
+## QUESTION|TASK 2
+
+__Recreate the example charts from [PY4DS: CH2 Data Visualization](https://aeturrell.github.io/python4DS/data-visualise.html) of the textbook. (Hint: copy the chart code from 2.2.3. Creating a Plot, one for each cell below)__
+
+
+```{python}
+# Include and execute your code here
+scat_plt1 = ggplot(
+  data = df,
+  mapping = aes(x = "flipper_length_mm", y = "body_mass_g")
+) + geom_point(
+  mapping = aes(color = "species", shape = "species")
+  ) + geom_smooth(method = "lm") + labs(
+    title="Body mass and flipper length",
+    subtitle="Dimensions for Adelie, Chinstrap, and Gentoo Penguins",
+    x="Flipper length (mm)",
+    y="Body mass (g)",
+    color="Species", #This simply defines the label in the legend for color
+    shape="Species"
+  )
+
+scat_plt1
+```
+
+As can be seen in the chart above, the Gentoo penguins are heavier and have a larger flipper length than either the Adelie or Chinstrap penguins.
+
+```{python}
+# Include and execute your code here
+scat_plt2 = ggplot(
+  data=df, mapping=aes(x="bill_length_mm", y="bill_depth_mm")
+) + geom_point(
+  mapping = aes(color = "island")
+) + geom_smooth(
+  se = False
+) + labs(
+  title="Bill length and depth",
+  subtitle="Dimensions for islands Torgersen, Biscoe, and Dream",
+  x="Bill length (mm)",
+  y="Bill depth (mm)",
+  color="Island"
+)
+
+scat_plt2
+```
+
+All penguins on the Torgersen Island have a bill length less than about 45mm. The other two islands ahve more scattered bill lengths. However, the majority of penguins with a bill depth less than 16mm are on the Biscoe island.
+
+```{python}
+# Include and execute your code here
+box_plt = ggplot(
+  data=df, mapping=aes(x="species", y="bill_depth_mm")
+) + geom_boxplot(
+  mapping = aes(color = "species")
+) + labs(
+  title="Specie bill depth",
+  subtitle="Quartiles of bill depth for Adelie, Gentoo, and Chinstrap Penguins",
+  x="Species",
+  y="Bill depth (mm)",
+  color="Species"
+)
+
+box_plt
+```
+
+Chinstrap and Adelie penguins have deeper bills than Gentoo penguins. However, Chinstrap penguins have a tighter distribution of bill depth.
+```{python}
+# Include and execute your code here
+scat_plt3 = ggplot(
+  df, aes(x="flipper_length_mm", y="body_mass_g")
+) + geom_point(
+  mapping = aes(color = "species")
+) + labs(
+  title="Flipper length and body mass",
+  subtitle="Relationship of flipper length and body mass",
+  x="Flipper length (mm)",
+  y="Body mass (g)",
+  color="Species"
+)
+
+scat_plt3
+```
+
+
+```{python}
+# Include and execute your code here
+bar_plt = ggplot(
+  df, aes(x="species")
+) + geom_bar(
+  mapping = aes(fill = "species")
+) + labs(
+  title="Penguin Species",
+  subtitle="Counts of Adelie, Gentoo, and Chinstrap Penguins",
+  x="Species",
+  y="Count",
+  fill="Species"
+)
+
+bar_plt
+# if the aesthetic axis is changed between x or y it changes the orientation of the bar graph from verticle to horizontal.
+# fill makes more sense as a coloring option than color for the bar graph, because color is merely the border around the bars where fill is the color of the bars
+```
+This bar chart showing the counts of penguins by species can be rotated by simply changing the aesthetic axis between x or y. Coloring bar charts merely colors the outline of the bars whereas fill changes the color of the bars themselves making it a more useful option for coloring in this case.
+
+```{python}
+ggsave(scat_plt1, filename="scat_plt1.svg")
+ggsave(scat_plt2, filename="scat_plt2.svg")
+ggsave(scat_plt3, filename="scat_plt3.svg")
+ggsave(bar_plt, filename="bar_plt.svg")
+ggsave(box_plt, filename="box_plt.svg")
+```

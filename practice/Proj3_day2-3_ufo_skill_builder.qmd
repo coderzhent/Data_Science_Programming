@@ -1,0 +1,269 @@
+---
+title: "Untitled"
+format: html
+---
+
+## Intro
+
+Do you believe in aliens? Do you believe they visit the earth in UFO's? This dataset contains information on UFO sightings. Use the code chunks below to read in the data and load the correct libraries.
+
+```{python}
+#import sys
+#!{sys.executable} -m pip install requests
+
+# The usuals
+import pandas as pd
+import polars as pl
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+```{python}
+# UFO Sightings
+url = "https://byuistats.github.io/DS250-Course/Skill%20Builders/json_missing.json"
+df = pd.read_json(url)
+df_pl = pl.read_json('.\json_missing.json')
+```
+
+## Get to know the data
+
+As a review, take some time to get to know the dataset. Most of you probably prefer to use the Data Wrangler extension to get familiar with your data. If you haven't yet, ensure this extension is installed. When you run the chunk above, the Data Wrangler extension icon will appear along the top of your interactive window. You can click that icon and select your dataset to explore it more interactively. 
+
+Use the Data Wrangler view, or fill in the blanks in the code chunk below to answer the following questions:
+
+- How many rows are there?
+- How many columns?
+- What does a row represent in this dataset?
+- What are the different ways missing values are encoded?
+- How many np.nan in each column?
+
+Code to help answer the questions above. Fill in the blanks to make the code work.
+```{python}
+display(df.shape)   # To get the rows and columns
+display(df.info())  # This shows me that two of the columns have missing values
+
+# Investigate the two columns more here:
+display(df.were_you_abducted.value_counts()) # returns a table of counts of all the unique values in a specified column
+display(df.describe())     # returns a numerical summary. What do you notice about this column in the way missing values are dealth with
+```
+
+```{python}
+
+```
+
+Do you see any other values in the dataset that could be considered "missing" but are not coded that way?
+
+```{python}
+df = df.replace('-', np.nan)
+```
+
+## Fix the data issues
+
+After learning different ways our data encodes missing values we will address them. There are many techniques we can use to handle missing values. For example, we can drop all rows that contain a missing value, impute missing values with mean or median, or replace missing values with a new "missing" category. We will use some of these techniques in this exercise.
+
+
+1. In the distance_reported column we want to replace missing values with the mean of the column. We discovered above that this column encodes missing values in 2 ways: as missing value and as -999. (-999 is a typical way of encoding missing values.)
+
+```{python}
+# First convert the -999 to missing values (this has to be done first, otherwise those -999's will greatly influence the mean calculation)
+
+df.distance_reported = df.distance_reported.replace(-999, np.nan)
+
+# Then change all the missing values to the mean of distance_reported. This is called imputing.
+dist_mean = df.distance_reported.mean()
+df.distance_reported = df.distance_reported.replace(np.nan, dist_mean)
+```
+
+2. In the shape_reported column, change the missing values to be a string: 'missing'
+
+Notice the different way of assigning column to be overwritten this code chunk uses. It uses the square bracket method to reference columns instead of the '.'. This is mostly a stylistic decision, but has functional consequences. Whichever is best can be used. Throughout this file they are used inconsistently and interchangeably so that you can get comfortable seeing it both ways.
+
+```{python}
+#Change the missing values to a string: "missing"
+df["shape_reported"] = df["shape_reported"].replace(np.nan, 'missing')
+```
+
+
+3. Similarly, change all the dashes (-) in `were_you_abducted` to a string, 'missing'.
+
+
+```{python}
+df["were_you_abducted"] = df.were_you_abducted.replace(np.nan, 'missing')
+```
+
+## Conditional logic to change only certain rows
+
+We are almost done cleaning the dataset. Fill in the *'s in the code chunk below to create a histogram of the `estimated_size` values.
+
+```{python}
+ggplot(data = df) + geom_histogram(aes(x = 'estimated_size'))
+```
+
+From the histogram you can see that a few of the values are much bigger than the others. It was discovered that those values are being reported in square inches instead of squre feet. Convert those very large values to square feet by dividing them by 144.
+
+We can do this a few different ways. First we will set a size threshold of 400,000. Anything bigger than that will be divided by 144.
+
+This code chunk identifies only those rows with an estimated size bigger than 400000, then it replaces the estimated_size column with the value obtained by dividing estimated_size by 144.
+
+```{python}
+df_copy = df #let's make a copy of the dataset we can play with
+df_copy.loc[df_copy['estimated_size']>400000, 'estimated_size'] = df_copy['estimated_size']/144
+```
+
+Another great option for applying conditional logic to alter values in a column is the where() command from the numpy library. The where() command has three inputs. The first is an expression that evaluates to either true or false. The 2nd argument is the value returned if the expression evaluated to 'True', the third and last argument is the value that should be returned if the initial expression evaluated to 'False'.
+
+Note: instead of playing with a copy dataset, we will simply create a new column of the dataset each time. If we named the new column the same as the old column, it would simply overwrite the existing column.
+
+```{python}
+df['estimated_size2'] = np.where(df[_____] > 400000, ______, df['estimated_size'])
+```
+
+Imagine that instead of guessing at a size threshold at which to make the change, we were told that specific cities were at fault for collecting the data incorrectly. Specifically, we need to correct any/all estimated_size values from the following cities:
+
+Holyoke, Crater Lake, Los Angeles, San Diego, Dallas
+
+Let's continue to use the np.where() approach. Fill in the 3 blanks in the code below. In this code the vertical bar "|" can be read as "OR". Describe to a partner what each piece of this code is doing.
+
+```{python}
+df['estimated_size3'] = np.______((df.city == "Holyoke") | (df.city == "Crater Lake") | (df.city == "Los Angeles") | (df._____ == "San Diego") | (df.city == _______), 
+                                  df.estimated_size / 144, 
+                                  df.estimated_size)
+
+```
+
+This works; but with 5 cities, it is difficult to read and type. Imagine if there were 10 cities, or even more! There must be a better way! The `isin()` function can be used as a shortcut to test if a value matches any of the values in the list. It is essentially a shortcut for the long code above.
+
+
+```{python}
+df['estimated_size4'] = np.____(df._____.isin(["Holyoke", "Crater Lake", "Los Angeles", "San Diego", ____]), 
+                                 df.estimated_size / 144, 
+                                 df.estimated_size)
+```
+
+## assign
+
+We have been using a pythonic way of creating new columns. There is actually a function in pandas specifically made so that you can create new columns and continue to chain commands together with the "." It is the assign() function.
+
+Let's practice using the assign function to modify the distance reported column by dividing it by 1000 and naming it kilometers
+
+
+```{python}
+df = df.______(
+    kilometers = ___.distance_reported / 1000
+)
+```
+
+## Aggregation, aka summary statistics
+
+Create a table that contains the following summary statistics and name it "my_summaries". 
+
+- median estimated size by shape 
+- mean distance reported by shape 
+- count of reports (i.e. sample size) belonging to each shape
+
+(Go review section 4.6 of the book if necessary)
+
+```{python}
+my_summaries = (
+    df.groupby(_____)
+      .aggregate(median_size = ('estimated_size', _____),
+                 mean_size = (______, 'mean'),
+                 how_many = ('estimated_size', _____))
+)
+my_summaries
+```
+
+Let's add another column to this summarized dataset to indicate if the distribution of the estimated_size is skewed left or skewed right. If the mean of a distribution if greater than then median, we know the distribution is skewed right. If the opposite is true, then the distribution is skewed in the left direction.
+
+```{python}
+done = my_summaries.assign(skew = np._____(my_summaries.___ > my_summaries.____, "right", "left"))
+
+done
+```
+
+## lambda function
+
+In the steps above, we created an interim dataframe, "my_summaries" to get the code to work. But what if we wanted to do the summary and the addition of the column to the summarized dataset in one set of commands chained together by periods. You might imagine it would look something like this:
+
+```{python}
+(
+df.groupby("shape_reported")
+      .aggregate(median_size = ('estimated_size', 'median'),
+                 mean_size = ('estimated_size', 'mean'),
+                 how_many = ('estimated_size', 'size'))
+      .assign(skew = np.where(mean_size > median_size, "right", "left"))
+)
+```
+
+Can you see the problem with this? Try a couple of attempts to fix what you guess is the issue. Then, after a couple of failed attempts, keep reading on for an explanation.
+
+Explanation: In the assign statement we are referencing mean_size and median_size, but we haven't told the code in what dataframe those columns exist. We can't use `df.mean_size` because mean_size was created in the aggregate() statement, it doesn't actually exist in the df. The dataframe coming to the assign() function through the period doesn't have a name.
+
+This is where a lambda function comes in handy. A lambda function is a one line, anonymous function (i.e. it has no name - so it can't be reused in other places). The syntax goes as follows:
+
+`lambda x: __place your function of x here__`
+
+You don't have to use the letter x, you can use any letter, but the convention is to use x.
+
+This allows us to name the object coming into assign() so that we can do all these steps in one chain of commands.
+
+```{python}
+(
+df.groupby("shape_reported")
+      .aggregate(median_size = ('estimated_size', 'median'),
+                 mean_size = ('estimated_size', 'mean'),
+                 how_many = ('estimated_size', 'size'))
+      .assign(skew = lambda x: np.where(x.mean_size > x.median_size, "right", "left"))
+)
+```
+
+
+
+Note that aggregation, via `.aggregate()`, always produces a new index because we have collapsed information down to the group-level (and the new index is made of those levels). Check it out for yourself:
+
+```{python}
+# notice that shape_reported is not one of the available columns
+my_summaries.info()
+```
+
+To fix this, you will need to reset the index as follows:
+
+```{python}
+my_summaries2 = my_summaries.reset_index()
+my_summaries2.info() #now re-run the info command and you should see shape_reported as one of the columns
+```
+
+Let's plot it:
+
+```{python}
+(
+    ggplot(data = my_summaries2) 
+    + geom_bar(aes(y = 'median_size', x = 'shape_reported'), stat = 'identity')
+)
+```
+
+## BONUS: Categorical variables
+
+The default is to sort the chart above alphabetically, and the sort is case sensitive! Can you figure out how to put the bars in descending order according to the bar's height?
+
+
+```{python}
+
+```
+
+What if we wanted a different sort order that is not alphabetical or based on height of the bar? For example, we may want to sort them into group of "traditional shapes" vs. other. This type of sorting, which is neither alphabetical nor based on the value is common - sorting by months is a good example.
+
+By changing the variable from a string variable to a categorical variable we can control the sort order. Read all about categorical data in [Chapter 19 of the book](https://aeturrell.github.io/python4DS/categorical-data.html#).
+
+
+```{python}
+# Sort by some arbitrary/contextual list
+mycategories = ['CIGAR', 'CIRCLE', 'CYLINDER', 'DISK', 'OVAL', 'RECTANGLE', 'SPHERE', 'TRIANGLE', 'FIREBALL', 'FLASH', 'FORMATION', 'LIGHT', 'OTHER', 'Missing']
+
+my_summaries2['shape_cat'] = pd.Categorical(my_summaries2['shape_reported'], categories = mycategories, ordered = True) 
+
+
+ggplot(data = my_summaries2) + geom_bar(aes(y = 'med_dist', x = 'shape_cat'), stat = 'identity')
+```

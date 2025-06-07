@@ -1,0 +1,156 @@
+---
+title: "Untitled"
+format: html
+---
+
+Load your libraries:
+
+```{python}
+#import sys
+#!{sys.executable} -m pip install requests
+# %%
+# The usuals
+import pandas as pd
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+Let's create a toy dataset to practice on
+
+```{python}
+# %%
+# missing data
+df = (pd.DataFrame(
+    np.random.randn(5, 3), 
+    index=['a', 'c', 'e', 'f', 'h'],
+    columns=['one', 'two', 'three'])
+  .assign(
+    six = [np.nan, np.nan, 2, 2, 1],
+    seven = [4, 5, 5, np.nan, np.nan],
+    four = ['bar', '', 'bar', 'bar', np.nan], 
+    five = lambda x: x.one > 0
+)
+  )
+df
+```
+
+```{python}
+df.six + df.seven #missing values are contagious
+df.seven.mean() #column operatrions drop NA's silently, which is different than R
+```
+
+There's 2 ways to deal with NA's:
+
+- fillna()
+  - Pro: Good if you want to fill in NA's in various columns with different values
+  - Cons: more limited in dealing with non-NA values
+
+- replace()
+  - Pro: Replace lots of different (including non-NA) in the entire dataset
+  - Con: nested dictionaries to replace unique values in each column
+
+### Using fillna()
+
+```{python}
+df.seven.fillna(0)
+df.seven.fillna(df.seven.mean()).sum()
+
+df.seven.fillna(df.seven.mean()) + df.six.fillna(df.six.mean())
+```
+
+
+```{python}
+df_cleaned = df
+
+fillvalues = {'six': df.six.mean(),
+              'seven': df.seven.mean(),
+              'four': "line"}
+
+df_cleaned.fillna(value = fillvalues).copy()
+
+```
+
+
+### Using replace
+
+```{python}
+df_cleaned.four.replace("", np.nan).fillna("line")
+
+```
+
+```{python}
+df.seven.replace(np.nan, df.seven.mean())
+df.replace({np.nan: 0,
+            2: 999})
+
+df.replace({'six': {np.nan: df.six.mean()},
+            'seven': {np.nan: df.seven.mean(),
+                       999: 2},
+            'four': {np.nan: "line",
+                      "": "line"}})
+```
+
+
+Forward or backfill for filling in missing values
+```{python}
+df.four.ffill()
+df.seven.ffill()
+df.fillna(method = "ffill")
+df.ffill(axis = 1) #fill across rows
+
+# Convert boolean to an integer
+df.five.astype('int')
+
+
+```
+
+
+
+## Dealing with missing data
+
+
+## Write it out to JSON
+
+This code selects the first row of the dataset (all columns), and then writes it out to JSON.
+
+```{python}
+df.iloc[0:1, ].to_json
+```
+
+
+## Practice on the cars dataset
+
+First, let's read in the json file
+
+```{python}
+url = "https://github.com/byuidatascience/data4missing/raw/master/data-raw/mtcars_missing/mtcars_missing.json"
+cars_json = pd.read_json(url)
+cars_json
+```
+
+I recommend giving the dataset you will be cleaning/altering another name so that you don't overwrite the original
+
+```{python}
+#dup df for cleansing
+cars_json_clean = cars_json
+
+```
+
+Choose the appropriate method/value to input for missing values in these columns:
+hp, wt, vs, gear
+
+
+```{python}
+cars_json_clean.hp = cars_json_clean.hp.fillna(cars_json_clean.hp.mean())
+cars_json_clean.vs = cars_json_clean.vs.ffill()
+cars_json_clean.wt = cars_json_clean.wt.fillna(cars_json_clean.wt.mean())
+```
+
+
+```{python}
+cars_json_clean.gear = cars_json_clean.gear.replace(999, np.nan).ffill()
+
+cars_json_clean
+```
