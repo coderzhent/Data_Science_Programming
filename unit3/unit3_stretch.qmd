@@ -36,199 +36,101 @@ LetsPlot.setup_html(isolated_frame=True)
 
 
 ```{python}
+url = 'https://raw.githubusercontent.com/byuidatascience/data4missing/master/data-raw/flights_missing/flights_missing.json'
 flights_json = pl.read_json('flights_missing.json')
-```
-
-```{python}
-month_name = {
-    'January': 1,
-    'February': 2,
-    'March': 3,
-    'April': 4,
-    'May': 5,
-    'June': 6,
-    'July': 7,
-    'August': 8,
-    'September': 9,
-    'October': 10,
-    'November': 11,
-    'December': 12
-}
-
-month_id = {
-    1: 'January',
-    2: 'February',
-    3: 'March',
-    4: 'April',
-    5: 'May',
-    6: 'June',
-    7: 'July',
-    8: 'August',
-    9: 'September',
-    10: 'October',
-    11: 'November',
-    12: 'December'
-}
-
-flights_json = flights_json.with_columns(
-    pl.when(pl.col('airport_code') < pl.col('airport_code').shift(1))
-        .then()
-)
+# flights_json = pl.read_json(url)
 ```
 
 ```{python}
 # Beginning of cleaning the data
-# Month dictionary:
 
-# First job:
-# fix months via airport codes
-# if airport code is less than previous then it is new month
+# First job: Fix years
+flights_json = flights_json.with_columns(
+    pl.when((pl.col('year').is_null()) & (pl.col('year').shift(1) == pl.col('year').shift(-1)))
+    .then(pl.col('year').shift(1))
+    .when((pl.col('year').is_null()) & (pl.col('month') == "January") & (pl.col('month').shift(1) == "December"))
+    .then(pl.col('year').shift(-1))
+    .otherwise(pl.col('year'))
+    .alias('year')
+)
 
+# Second job: Fix months
+# Fix spelling of February
 flights_json = flights_json.with_columns(
     pl.col('month').replace({'Febuary': 'February'}).alias('month')
 )
 
-# If previous month is less than or equal to current then same year
-# If previous month is greater then new year else current year
-
+# Fix missing months
 flights_json = flights_json.with_columns(
-    pl.when(not pl.col('year').is_null()).then(pl.col('year'))
-    .when()
+    pl.when((pl.col('month') == 'n/a') & (pl.col('month').shift(1) == pl.col('month').shift(-1)) & (pl.col('month').shift(1) != 'n/a'))
+    .then(pl.col('month').shift(1))
+    .when((pl.col('month') == 'n/a') & (pl.col('airport_code') < pl.col('airport_code').shift(1)) & (pl.col('month').shift(-1) != 'n/a'))
+    .then(pl.col('month').shift(-1))
+    .when((pl.col('month') == 'n/a') & (pl.col('airport_code') > pl.col('airport_code').shift(1)) & (pl.col('month').shift(1) != 'n/a'))
+    .then(pl.col('month').shift(1))
+    .when((pl.col('month') == 'n/a') & (pl.col('airport_code') < pl.col('airport_code').shift(-1)) & (pl.col('month').shift(-1) != 'n/a'))
+    .then(pl.col('month').shift(-1))
+    .otherwise(pl.col('month'))
+    .alias('month')
 )
 
-null_years = flights_json['year'].is_null()
-for i in range(len(null_years)):
-    if null_years[i] == True:
-        temp_col = flights_json['year'].to_list()
-        if i == 0:
-            # print(f"Changed null at: {i}")
-            temp_col[i] = flights_json['year'][i + 1]
-        else:
-            # print(f"Changed null at: {i}")
-            temp_col[i] = flights_json['year'][i - 1]
-        flights_json = flights_json.with_columns(pl.Series('year', temp_col))
+# Second job: Fix airport names
+airports = flights_json.select(['airport_code', 'airport_name']).filter((pl.col('airport_name') != "")).unique().sort(by='airport_code', descending=False)
+airport_dic = dict(zip(airports['airport_code'], airports['airport_name']))
+flights_json = flights_json.with_columns(airport_name=pl.col('airport_code').replace(airport_dic))
 
-# Fixing airport names:
-for i in range(len(flights_json['airport_name'])):
-    if flights_json['airport_name'][i] == "":
-        port = (
-            flights_json.filter((pl.col('airport_code') == flights_json['airport_code'][i]) & (pl.col('airport_name') != ""))
-            .select('airport_name')
-            .limit(1)
-            .item()
-        )
-        port_ID = (
-            flights_json.filter((pl.col('airport_code') == flights_json['airport_code'][i]) & (pl.col('airport_name') != ""))
-            .select('airport_code')
-            .limit(1)
-            .item()
-        )
+# Third job: Fix missing values in time delays
+flights_json = flights_json.with_columns(
+    pl.col('minutes_delayed_nas').fill_null(-999.0),
+    pl.col('minutes_delayed_carrier').fill_null(-999.0)
+)
 
-        flights_json = flights_json.with_columns(
-            pl.when(pl.col('airport_code') == port_ID)
-            .then(pl.lit(port))
-            .otherwise(pl.col('airport_name'))
-            .alias('airport_name')
-        )
+flights_json = flights_json.with_columns(
+    pl.when((pl.col('minutes_delayed_carrier') < 0) & (pl.col('minutes_delayed_nas') > 0))
+    .then(pl.col('minutes_delayed_total') - pl.col('minutes_delayed_weather') - pl.col('minutes_delayed_security') - pl.col('minutes_delayed_late_aircraft') - pl.col('minutes_delayed_nas'))
+    .when((pl.col('minutes_delayed_carrier') < 0) & (pl.col('minutes_delayed_nas') < 0))
+    .then((pl.col('minutes_delayed_total') - pl.col('minutes_delayed_weather') - pl.col('minutes_delayed_security') - pl.col('minutes_delayed_late_aircraft')) / 2)
+    .otherwise(pl.col('minutes_delayed_carrier'))
+    .alias('minutes_delayed_carrier')
+)
 
-# Fixing time delays
-carrier_col = flights_json['minutes_delayed_carrier'].to_list()
-nas_col = flights_json['minutes_delayed_nas'].to_list()
+flights_json = flights_json.with_columns(
+    pl.when(pl.col('minutes_delayed_nas') < 0)
+    .then(pl.col('minutes_delayed_total') - pl.col('minutes_delayed_weather') - pl.col('minutes_delayed_security') - pl.col('minutes_delayed_late_aircraft') - pl.col('minutes_delayed_carrier'))
+    .otherwise(pl.col('minutes_delayed_nas'))
+    .alias('minutes_delayed_nas')
+)
 
-for i in range(len(flights_json['minutes_delayed_total'])):
-    if (carrier_col[i] == None) & (nas_col[i] == None):
-        val = flights_json['minutes_delayed_total'][i] - (
-            flights_json['minutes_delayed_late_aircraft'][i]
-            + flights_json['minutes_delayed_security'][i]
-            + flights_json['minutes_delayed_weather'][i]
-        )
-        carrier_col[i] = val / 2
-        nas_col[i] = val / 2
-    elif carrier_col[i] == None:
-        val = flights_json['minutes_delayed_total'][i] - (
-            flights_json['minutes_delayed_late_aircraft'][i]
-            + flights_json['minutes_delayed_security'][i]
-            + flights_json['minutes_delayed_weather'][i]
-            + flights_json['minutes_delayed_nas'][i]
-        )
-        carrier_col[i] = val
-    elif nas_col[i] == None:
-        val = flights_json['minutes_delayed_total'][i] - (
-            flights_json['minutes_delayed_late_aircraft'][i]
-            + flights_json['minutes_delayed_security'][i]
-            + flights_json['minutes_delayed_weather'][i]
-            + flights_json['minutes_delayed_carrier'][i]
-        )
-        nas_col[i] = val
+# Fourth job: Fix missing delay counts
+flights_json = flights_json.with_columns(
+    num_of_delays_carrier=pl.col('num_of_delays_carrier').replace('1500+', '-999')
+)
 
-flights_json = flights_json.with_columns(pl.Series('minutes_delayed_carrier', carrier_col, dtype=pl.Float64), pl.Series('minutes_delayed_nas', nas_col, dtype=pl.Float64))
+flights_json = flights_json.with_columns(
+    pl.col('num_of_delays_carrier').cast(pl.Int64).alias('num_of_delays_carrier')
+)
 
-col_sz = len(flights_json['month'])
-flight_months = flights_json['month'].to_list()
-mon_dic = {0: "January", 1: "February", 2: "March", 3: "April", 4: "May", 5: "June", 6: "July", 7: "August", 8: "September", 9: "October", 10: "November", 11: "December"}
+flights_json = flights_json.with_columns(
+    pl.when((pl.col('num_of_delays_late_aircraft') < 0) & (pl.col('num_of_delays_carrier') > 0))
+    .then(pl.col('num_of_delays_total') - pl.col('num_of_delays_weather') - pl.col('num_of_delays_security') - pl.col('num_of_delays_nas') - pl.col('num_of_delays_carrier'))
+    .when((pl.col('num_of_delays_late_aircraft') < 0) & (pl.col('num_of_delays_carrier') < 0))
+    .then(((pl.col('num_of_delays_total') - pl.col('num_of_delays_weather') - pl.col('num_of_delays_security') - pl.col('num_of_delays_nas')) / 2).cast(pl.Int64))
+    .otherwise(pl.col('num_of_delays_late_aircraft'))
+    .alias('num_of_delays_late_aircraft')
+)
 
-cur_mon = 0
-for i in range(col_sz):
-    code = flights_json['airport_code'][i]
-    if i == col_sz - 1:
-        flight_months[i] = mon_dic[cur_mon]
-    elif flights_json['airport_code'][i] > flights_json['airport_code'][i + 1]:
-        flight_months[i] = mon_dic[cur_mon]
-        cur_mon = 0 if cur_mon == 11 else cur_mon + 1
-    else:
-        flight_months[i] = mon_dic[cur_mon]
-
-flights_json = flights_json.with_columns(pl.Series('month', flight_months))
-
-car_delay = flights_json['num_of_delays_carrier'].to_list()
-air_delay = flights_json['num_of_delays_late_aircraft'].to_list()
-
-for i in range(len(flights_json['num_of_delays_total'])):
-    if (car_delay[i] == '1500+') & (air_delay[i] == -999.0):
-        val = flights_json['num_of_delays_total'][i] - (
-            flights_json['num_of_delays_weather'][i]
-            + flights_json['num_of_delays_security'][i]
-            + flights_json['num_of_delays_nas'][i]
-        )
-
-        # val2 = val - (val // 2)
-        val2 = int(flights_json.filter(pl.col('num_of_delays_late_aircraft') >= 0).select(pl.col('num_of_delays_late_aircraft').mean().alias('delay_mean'))['delay_mean'][0])
-
-        # val2 should be the mean of that column
-
-        if val - val2 <= 1500:
-            car_delay[i] = 1501
-            air_delay[i] = val - 1501
-        else:
-            car_delay[i] = val - val2
-            air_delay[i] = val2
-    elif air_delay[i] == -999.0:
-        val = flights_json['num_of_delays_total'][i] - (
-            flights_json['num_of_delays_weather'][i]
-            + flights_json['num_of_delays_security'][i]
-            + flights_json['num_of_delays_nas'][i]
-            + int(flights_json['num_of_delays_carrier'][i])
-        )
-        air_delay[i] = val
-    elif car_delay[i] == '1500+':
-        val = flights_json['num_of_delays_total'][i] - (
-            flights_json['num_of_delays_weather'][i]
-            + flights_json['num_of_delays_security'][i]
-            + flights_json['num_of_delays_nas'][i]
-            + flights_json['num_of_delays_late_aircraft'][i]
-        )
-        car_delay[i] = val
-
-car_delay_flt = [float(x) for x in car_delay]
-
-flights_json = flights_json.with_columns(pl.Series('num_of_delays_carrier', car_delay_flt, dtype=pl.Float64), pl.Series('num_of_delays_late_aircraft', air_delay, dtype=pl.Float64))
-
-# print(flights_json.tail(5))
+flights_json = flights_json.with_columns(
+    pl.when((pl.col('num_of_delays_carrier') < 0) & (pl.col('num_of_delays_late_aircraft') > 0))
+    .then(pl.col('num_of_delays_total') - pl.col('num_of_delays_weather') - pl.col('num_of_delays_security') - pl.col('num_of_delays_nas') - pl.col('num_of_delays_late_aircraft'))
+    .otherwise(pl.col('num_of_delays_carrier'))
+    .alias('num_of_delays_carrier')
+)
 ```
+
 
 ## QUESTION 1
 
-__Which delay is the worst delay?__ Build on the analysis you already did regarding Weahter Delay. This time though, instead of comparing one type of delay across multiple airports, we want to compare Weather Delay (an involved calculation that you already did in a previous task) with Carrier Delay and Security Delay (both of which are in the dataset and don’t need fancy calculations like Weather did). Compare the proportion of delay for each of the three categories in a Chart and a Table. Describe your results.
+__Which delay is the worst delay?__ Build on the analysis you already did regarding Weather Delay. This time though, instead of comparing one type of delay across multiple airports, we want to compare Weather Delay (an involved calculation that you already did in a previous task) with Carrier Delay and Security Delay (both of which are in the dataset and don’t need fancy calculations like Weather did). Compare the proportion of delay for each of the three categories in a Chart and a Table. Describe your results.
 
 Weather delays make up 73% of all delays, whereas security delays make up less than 1%. Carrier delays result in a little over a quarter of the delays people encounter while flying.
 
