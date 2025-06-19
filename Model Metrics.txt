@@ -1,0 +1,46 @@
+Metric			Good For						Bad For								Description
+Accuracy		Balanced datasets				Imbalanced datasets					The proportion of all predictions that the model got right.
+Precision		Reducing false positives		When false positives are costly		Of all the positive predictions made, how many were actually positive?
+Recall			Reducing false negatives		When missing positives are costly	Of all the actual positives, how many did the model correctly identify?
+F1 Score		Balancing precision & recall	When only one matters				Harmonic mean of precision and recall, balancing the two.
+ROC-AUC			General performance				Poor for very imbalanced data		How well the model separates classes by looking at the trade-off between True Positive Rate (Recall) and False Positive Rate at various threshold settings.
+PR-AUC			Imbalanced classification		Less intuitive than ROC-AUC			How well the model performs balancing precision and recall across thresholds.
+Log Loss		Probabilistic confidence		Less interpretable					How close the predicted probabilities are to the actual labels. It penalizes wrong confident predictions heavily.
+
+Check data balance
+	Balanced means having a representative and a well-distributed range
+
+	If classification check how much of the data is of each classification target, the proportions for each class ideally should be equal or close to it as possible.
+
+	If regression, balance gets to be a little wonky. The data should as a minimum represent the world in proportion, if the real world has few values on the tails of the data but is clustered in the middle the dataset should more closely reflect that. However, this may struggle to predict the occasionally rare tails. If those are important oversampling of the tails to have a more uniform distribution could prove to be helpful.
+
+When Choosing Preprocessing Techniques like (Standard Scalar or Min Max Scalar):
+	The best option depends on the following:
+		Activation function used
+		The data distribution
+		The model architecture
+
+Preprocessor					What it does													Best For											Bad For					Situations
+StandardScalar					Cetners data (mean = 0) and scales variance						Normally (Gaussian) distributed data										Tabular Data, Regress, Class.
+MinMaxScalar (Normalization)	Scales data to a fixed range ie. [0,1]							Features aren't Gaussian or have bounded ranges		Sensitive to outliers	Pixel data, no outliers
+RobustScalar					Uses median and IQR instead of mean and standard deviation		Data with many outliers														Presence of Outliers
+
+IQR = Interquartile Range, it measures statistical dispersion, how spread out the middle %50 of the data is.
+
+Notes:
+If the network involves Batch Normalization or Layer Normalization, then external normalization becomes less critical since the network is handling it internally. However, some level of input normalizing can still be useful.
+
+Activation Functions	Preprocessor(s)					Pros																		Cons
+tanh					StandardScalar					Zero-centered outputs, smooth, differentiable								Vanishing gradient, saturation at extrema's
+Sigmoid					StandardScalar, MinMaxScalar	Smooth gradient, differentiable, good for binary classification				Vanishing gradient, non-zero centered output, head and tail saturation
+softmax					MinMaxScalar					Converts logits to probabilities, easy interpretation of outputs			Sensitive to outliers in logits, not used in hidden layers
+ReLU					StandardScalar					Efficient, avoids vanishing gradient, sparse activation, fast convergence	Dying ReLU, non-zero centered
+Leaky ReLU				StandardScalar					Fixes Dying ReLU, same Pros as ReLU											Introduces a hyperparameter, performance gain is limited
+ELU						StandardScalar					Avoids Dying ReLU, Negative values push mean to zero, smooth gradient		Computationally expensive, requires tuning of hyperparameter
+
+Vanishing gradient: for large positive and negative inputs gradients get small which will slow learning rate
+Non-zero cetnered output: can slow convergence
+Saturation: neurons can "die" (stop updating) which ultimately slows learning
+Sparse activation: only some neurons fire which helps with generalization
+Dying ReLU: neurons can get stuck at zero if inputs are negative and stop learning
+Logits: also known as scores, these are the raw unnormalized outputs of a neural network before applying an activation function (the larger the logit the greater the confidence)

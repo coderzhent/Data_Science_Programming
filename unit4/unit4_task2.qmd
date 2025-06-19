@@ -1,0 +1,379 @@
+---
+title: "Client Report -How good is it, really?"
+subtitle: "Unit 4 Task 2"
+author: "Ezekial Curran"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+# import pandas as pd 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import polars as pl
+import numpy as np
+from lets_plot import *
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.inspection import permutation_importance
+from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
+from sklearn.metrics import (
+  classification_report,
+  accuracy_score,
+  recall_score,
+  precision_score,
+  f1_score,
+  r2_score,
+  mean_absolute_error,
+  mean_squared_error,
+  root_mean_squared_error
+  )
+# add the additional libraries you need to import for ML here
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# import your data here using pandas and the URL
+url1 = "https://github.com/byuidatascience/data4dwellings/raw/master/data-raw/dwellings_ml/dwellings_ml.csv"
+url2 = "https://github.com/byuidatascience/data4dwellings/raw/master/data-raw/dwellings_neighborhoods_ml/dwellings_neighborhoods_ml.csv"
+url3 = "https://github.com/byuidatascience/data4dwellings/raw/master/data-raw/dwellings_denver/dwellings_denver.csv"
+url4 = "https://github.com/byuidatascience/data4dwellings/blob/master/data.md"
+
+df = pl.read_csv('dwellings_ml.csv')
+```
+
+## QUESTION 1
+
+__Describe the quality of your classification model using 2-3 different evaluation metrics.__ You also need to explain how to interpret each of the evaluation metrics you use.  
+
+First thing that was checked for was how balanced the dataset is. Since the data is split between a third being after 1980 and two thirds being before 1980, the data isn't balanced, it isn't terrible but it is unbalanced. Going off of accuracy alone would be a mistake since that is only useful for balanced datasets. Involving precision and recall is helpful for handling when false positives are costly or false negatives are costly respectively. F1-Score is a good balance between precision and recall, it isn't useful when only one of those is important, since both are useful and the data isn't balanced, F1-Score will be the primary determining factor.
+
+```{python}
+# Include and execute your code here
+X = df.drop(["parcel", "before1980", "yrbuilt"])
+y = df.select(["before1980"])
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=117)
+
+model_xgb = GradientBoostingClassifier()
+model_xgb.fit(X_train, y_train)
+```
+
+```{python}
+# Checking classification (data) balance:
+class_counts = df["before1980"].value_counts()
+class_counts = class_counts.with_columns(
+  (pl.col("count") / pl.col("count").sum()).alias("ratio")
+)
+print(class_counts)
+pred = model_xgb.predict(X_test)
+print(classification_report(y_test, pred))
+```
+
+## QUESTION 2
+
+__Justify your classification model by discussing the most important features selected by your model.__ This discussion should include a feature importance chart and a description of the features.
+
+The top features that proved to be important to the model are shown below. The feature that is most important is the "arcstyle_ONE-STORY" which is a home style of only a single level. The second most important is the "gartype_Att" which indicates whether a garage is attached to the home or separate.
+
+```{python}
+# Include and execute your code here
+importances = model_xgb.feature_importances_
+feats = pl.DataFrame({"Feature": X.columns, "Importance": importances})
+print(feats.sort("Importance", descending=True).head(5))
+
+# try permutation
+```
+
+
+```{python}
+top_feats = feats.sort("Importance").tail(10)
+
+feats_bar = (
+    ggplot(data=top_feats)
+        + geom_bar(mapping = aes(x = 'Importance', y = 'Feature', fill='Feature', color='Feature'), stat='identity')
+        + guides(color="none")
+        + labs(
+          title="Feature Importance",
+          subtitle="The top 10 most important features are shown that helped the model learn on the data.",
+          x="Importance",
+          y="Feature",
+          fill='Feature'
+        )
+        + theme(
+            panel_background=element_rect(fill='gray'),
+            plot_background=element_rect(fill='gray'),
+            panel_grid_major=element_rect(fill='gray'),
+            legend_background=element_rect(fill='gray'),
+            axis_text=element_text(color='white'),
+            axis_title=element_text(color='white'),
+            plot_title=element_text(color='white'),
+            plot_subtitle=element_text(color='white'),
+            legend_text=element_text(color='white'),
+            legend_title=element_text(color='white'),
+            label_text=element_text(color='white')
+        )
+        + ggsize(1600, 900)
+)
+
+feats_bar
+```
+
+## Extra
+__Using a neural network.__
+
+```{python}
+class Net(nn.Module):
+  def __init__(self, input_size):
+    super(Net, self).__init__()
+    self.fc1 = nn.Linear(input_size, 16)
+    self.relu = nn.ReLU()
+    self.fc2 = nn.Linear(16,1)
+  
+  # This defines how the data will flow through the network, x is the input tensor
+  def forward(self, x):
+    x = self.fc1(x)
+    x = self.relu(x)
+    x = self.fc2(x)
+    return x
+
+class TorchModelWrapper(BaseEstimator):
+  def __init__(self, model, device, task="classification", scorer="f1_score"):
+    self.model = model
+    self.device = device
+    self.task = task # 'classification' or 'regression'
+    self.scorer = scorer
+
+  def fit(self, X, y):
+    return self
+
+  def predict(self, X):
+    self.model.eval()
+    with torch.no_grad():
+      X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
+      outputs = self.model(X_tensor)
+
+      if self.task == "regression":
+        return outputs.cpu().numpy().flatten()
+      elif self.task == "classification":
+        if outputs.shape[1] == 1:
+          probs = torch.sigmoid(outputs).cpu().numpy()
+          return (probs >= 0.5).astype(int).flatten()
+        else:
+          return torch.argmax(outputs, dim=1).cpu().numpy()
+      else:
+        raise ValueError(f"Unsupported task type: {self.task}\nOnly two types of tasks are available: regression and classification (default)")
+
+  def score(self, X, y):
+    y_pred = self.predict(X)
+
+    if self.scorer == "f1_score":
+      return f1_score(y, y_pred)
+    elif self.scorer == "accuracy_score":
+      return accuracy_score(y, y_pred)
+    elif self.scorer == "MSE":
+      return mean_squared_error(y, y_pred)
+    elif self.scorer == "MAE":
+      return mean_absolute_error(y, y_pred)
+    elif self.scorer == "r2_score":
+      return r2_score(y, y_pred)
+    elif self.scorer == "recall_score":
+      return recall_score(y, y_pred)
+    elif self.scorer == "precision_score":
+      return precision_score(y, y_pred)
+    else:
+      raise ValueError(f"Unsupported scoring method: {self.scorer}")
+```
+
+```{python}
+# Check whether CUDA is available
+if (torch.cuda.is_available()):
+  print(f"CUDA is available, using the GPU")
+  print(torch.cuda.get_device_name(0))       # GPU name
+  # print(torch.cuda.current_device()) 
+  device = torch.device("cuda")
+else:
+  print(f"CUDA is not available, using the CPU")
+  device = torch.device("cpu")
+
+# Converting to numpy for PyTorch
+X_nn = X.to_numpy()
+y_nn = y.to_numpy()
+
+scaler = StandardScaler()
+X_nn = scaler.fit_transform(X_nn)
+
+X_nn_trn, X_nn_tst, y_nn_trn, y_nn_tst = train_test_split(X_nn, y_nn, test_size=0.2, random_state=117)
+
+# Converting to PyTorch Tensors
+X_trn_tensor = torch.tensor(X_nn_trn, dtype=torch.float32)
+y_trn_tensor = torch.tensor(y_nn_trn, dtype=torch.float32).view(-1, 1)
+X_tst_tensor = torch.tensor(X_nn_tst, dtype=torch.float32)
+y_tst_tensor = torch.tensor(y_nn_tst, dtype=torch.float32).view(-1, 1)
+
+if torch.cuda.is_available():
+  print(f"Moving Tensors to the GPU")
+  X_trn_tensor = X_trn_tensor.to(device)
+  y_trn_tensor = y_trn_tensor.to(device)
+  X_tst_tensor = X_tst_tensor.to(device)
+  y_tst_tensor = y_tst_tensor.to(device)
+
+
+model_nn = Net(input_size=X_nn.shape[1])
+
+if torch.cuda.is_available():
+  print(f"Moving the model to the GPU")
+  model_nn = model_nn.to(device)
+  
+
+criterion = nn.BCEWithLogitsLoss()
+
+optimizer = torch.optim.Adam(model_nn.parameters(), lr=0.01)
+```
+
+__Epochs have a significant decrease in worth over time.__
+Increasing the number of epochs used to train the neural network has a significant decrease of loss reduction over time as can be seen in the graph below. Although a neural network is a black box, each time one is ran it will not yeild the same results, but it will yeild results similar enough between model variants.
+```{python}
+# Training loop
+losses = []
+loss_epochs =[]
+
+epochs = 15000
+for epoch in range(epochs):
+  model_nn.train()
+  outputs = model_nn(X_trn_tensor)
+  loss = criterion(outputs, y_trn_tensor)
+
+  optimizer.zero_grad()
+  loss.backward()
+  optimizer.step()
+
+  losses.append(loss.item())
+  loss_epochs.append(epoch)
+
+  if (epoch+1) % (epochs / 10) == 0:
+    print(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
+
+loss_track = pl.DataFrame({
+  "epoch": loss_epochs,
+  "loss": losses
+})
+
+loss_graph = (
+    ggplot(data=loss_track)
+    + geom_line(mapping = aes(x = 'epoch', y = 'loss', color='loss'))
+    + guides(color="none")
+    + scale_color_manual(values=['blue'])
+    + labs(
+      title="Loss Over Time",
+      x="Epochs",
+      y="Loss"
+    )
+    + theme(
+        panel_background=element_rect(fill='gray'),
+        plot_background=element_rect(fill='gray'),
+        panel_grid_major=element_rect(fill='gray'),
+        legend_background=element_rect(fill='gray'),
+        axis_text=element_text(color='white'),
+        axis_title=element_text(color='white'),
+        plot_title=element_text(color='white'),
+        plot_subtitle=element_text(color='white'),
+        legend_text=element_text(color='white'),
+        legend_title=element_text(color='white'),
+        label_text=element_text(color='white')
+    )
+    + ggsize(1600, 900)
+)
+display(loss_graph)
+```
+
+This wraps the model into a wrapper that will be used for importance permutation to find which features the model used to determine whether the house was before 1980 or not.
+
+```{python}
+# Evaluating the model
+wrapped_model = TorchModelWrapper(model=model_nn, device=device, task="classification")
+
+result = permutation_importance(
+  wrapped_model,
+  X_nn, y_nn,
+  n_repeats=10,
+  random_state=117,
+  n_jobs=-1
+)
+
+importances = result.importances_mean
+stds = result.importances_std
+indices = np.argsort(importances)[::-1]
+
+nn_res = pl.DataFrame({"Feature": np.array(X.columns)[indices], "Importance": importances[indices], "Std": stds[indices]})
+
+with torch.no_grad():
+  probs = torch.sigmoid(model_nn(X_tst_tensor))
+  preds = (probs >=0.5).int().cpu().numpy() if torch.cuda.is_available() else (probs >= 0.5).float()
+  
+  y_true = y_tst_tensor.int().cpu().numpy() if torch.cuda.is_available() else y_tst_tensor
+
+nn_res = pl.DataFrame({"Feature": np.array(X.columns)[indices], "Importance": importances[indices], "Std": stds[indices]})
+```
+
+The neural network with little help and modification did slightly outperform the gradient boosting model. Something to note about feature importance is that each neural network model will come to different conclusions on which feature is most important, but generally each one will share a lot of similarities.
+
+```{python}
+print(classification_report(y_true, preds))
+
+if torch.cuda.is_available():
+  top_feats = nn_res.sort("Importance").tail(10)
+  feats_bar = (
+    ggplot(data=top_feats)
+        + geom_bar(mapping = aes(x = 'Importance', y = 'Feature', fill='Feature', color='Feature'), stat='identity')
+        + guides(color="none")
+        + labs(
+          title="Feature Importance",
+          subtitle="The top 10 most important features are shown that helped the model learn on the data.",
+          x="Importance",
+          y="Feature",
+          fill='Feature'
+        )
+        + theme(
+            panel_background=element_rect(fill='gray'),
+            plot_background=element_rect(fill='gray'),
+            panel_grid_major=element_rect(fill='gray'),
+            legend_background=element_rect(fill='gray'),
+            axis_text=element_text(color='white'),
+            axis_title=element_text(color='white'),
+            plot_title=element_text(color='white'),
+            plot_subtitle=element_text(color='white'),
+            legend_text=element_text(color='white'),
+            legend_title=element_text(color='white'),
+            label_text=element_text(color='white')
+        )
+        + ggsize(1600, 900)
+  )
+
+  display(feats_bar)
+else:
+  print("CUDA is not available!")
+```
