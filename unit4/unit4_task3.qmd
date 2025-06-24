@@ -199,6 +199,27 @@ def train_model(model, name, X_train, X_test, y_train, y_test, epochs=1000):
   
   return train_losses, test_accuracies, f1_scores
 
+# To use integrated gradients, the model needs to be differential
+def integrated_gradients(model, inputs, baseline=None, steps=50):
+  if baseline is None:
+    baseline = torch.zeros_like(inputs)
+
+  inputs = inputs.requires_grad_()
+  scaled_inputs = [baseline + (float(i) / steps) * (inputs - baseline) for i in range(steps + 1)]
+  grad = []
+
+  for i in scaled_inputs:
+    model.zero_grad()
+    out = model(i)
+    out = out.squeeze()
+    out.backward(troch.ones_like(out))
+    grads.append(i.grad.detach().clone())
+    i.grad.zero_()
+
+  avg_grads = torch.stack(grads).mean(dim=0)
+  integrated_grads = (inputs - baseline) * avg_grads
+  return integrated_grads
+
 if (torch.cuda.is_available()):
   print(f"CUDA is available, using the GPU")
   print(torch.cuda.get_device_name(0))
