@@ -261,7 +261,8 @@ _For example, how does a particular feature determine whether a house is built b
 
 ```{python}
 # Include and execute your code here
-num_epochs = 100
+num_epochs = 1000
+epochs = range(num_epochs)
 shallow_mdl = Neural_Net(input_size=X.shape[1])
 deep_mdl = Neural_Net(input_size=X.shape[1], shallow=False)
 
@@ -324,7 +325,6 @@ deep_losses /= 5
 deep_accs /= 5
 deep_f1 /= 5
 
-epochs = range(num_epochs)
 cv_res = pl.DataFrame({
   "epoch": epochs,
   "loss_shallow": shall_losses,
@@ -450,6 +450,18 @@ display(cv_loss_graph)
 display(cv_acc_f1_graph)
 ```
 
+_A possible method to evaluate the relationship of each variable is a table. One column is the list of features, another column is the count of houses before 1980 and another column of the count of houses after 1980. Fead the entire dataset into the model and get the predictions. Just count the predictions._
+
+```{python}
+X_eval = X.to(device) if torch.cuda.is_available() else X
+y_eval = y.to(device) if torch.cuda.is_available() else y
+
+with torch.no_grad():
+  probs = torch.sigmoid(deep_mdl(X_eval))
+  preds = (probs >=0.5).int().cpu().numpy() if torch.cuda.is_available() else (probs >= 0.5).float()
+
+
+```
 
 ## QUESTION 2
 
