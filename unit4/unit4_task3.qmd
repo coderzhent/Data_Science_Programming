@@ -27,6 +27,7 @@ execute:
 
 ```{python}
 import torch
+import shap
 import torch.nn as nn
 import torch.optim as optim
 import polars as pl
@@ -87,14 +88,6 @@ class Neural_Net(nn.Module):
         nn.Dropout(0.1),
 
         nn.Linear(16, 1)
-        # self.relu3 = nn.ReLU()
-        # self.dropout3 = nn.Dropout(0.1)
-
-        # self.fc4 = nn.Linear(4, 2)
-        # self.relu4 = nn.ReLU()
-        # self.dropout4 = nn.Dropout(0.1)
-
-        # self.fc5 = nn.Linear(2, 1)
       )
   
   def forward(self, x):
@@ -199,6 +192,34 @@ def train_model(model, name, X_train, X_test, y_train, y_test, epochs=1000):
   
   return train_losses, test_accuracies, f1_scores
 
+def find_importances(model, X, y):
+  wrapped_model = TorchModelWrapper(model=model, device=device, task="classification")
+
+  # X_nn is the dataframe of X converted to a numpy object
+  result = permutation_importance(
+    wrapped_model,
+    X.to_numpy(), y.to_numpy(),
+    n_repeats=10,
+    random_state=117,
+    n_jobs=-1
+  )
+
+  importances = result.importances_mean
+  std_devs = result.importances_std
+  indices = np.argsort(importances)[::-1]
+
+  with torch.no_grad():
+    probs = torch.sigmoid(model(X_tst_tensor))
+    preds = (probs >=0.5).int().cpu().numpy() if torch.cuda.is_available() else (probs >= 0.5).float()
+    
+    y_true = y_tst_tensor.int().cpu().numpy() if torch.cuda.is_available() else y_tst_tensor
+
+  feat_import = pl.DataFrame({"Feature": np.array(X.columns)[indices], "Importance": importances[indices], "Std": std_devs[indices]})
+
+  print(classification_report(y_true, preds))
+
+  return feat_import
+
 # To use integrated gradients, the model needs to be differential
 def integrated_gradients(model, inputs, baseline=None, steps=50):
   if baseline is None:
@@ -230,8 +251,12 @@ else:
   device = torch.device("cpu")
   torch.manual_seed(117)
 
-X = df.drop(["parcel", "before1980", "yrbuilt"]).to_numpy()
-y = df.select(["before1980"]).to_numpy()
+X_df = df.drop(["parcel", "before1980", "yrbuilt"])
+y_df = df.select(["before1980"])
+
+X = X_df.to_numpy()
+y = y_df.to_numpy()
+
 
 scaler = StandardScaler()
 X = scaler.fit_transform(X)
@@ -453,14 +478,99 @@ display(cv_acc_f1_graph)
 _A possible method to evaluate the relationship of each variable is a table. One column is the list of features, another column is the count of houses before 1980 and another column of the count of houses after 1980. Fead the entire dataset into the model and get the predictions. Just count the predictions._
 
 ```{python}
-X_eval = X.to(device) if torch.cuda.is_available() else X
-y_eval = y.to(device) if torch.cuda.is_available() else y
+res_shallow = find_importances(shallow_mdl, X_df, y_df)
+res_deep = find_importances(deep_mdl, X_df, y_df)
+# Example for a single test input
+# input_tensor = torch.tensor(X_test[0], dtype=torch.float32)
+# attr = integrated_gradients(model, input_tensor.unsqueeze(0))
+# print(f"Integrated gradients for input 0: {attr}")
+```
 
-with torch.no_grad():
-  probs = torch.sigmoid(deep_mdl(X_eval))
-  preds = (probs >=0.5).int().cpu().numpy() if torch.cuda.is_available() else (probs >= 0.5).float()
+```{python}
+if torch.cuda.is_available():
+  top_shallow_feats = res_shallow.sort("Importance").tail(10)
+  top_deep_feats = res_deep.sort("Importance").tail(10)
+  feats_bar_shallow = (
+    ggplot(data=top_shallow_feats)
+        + geom_bar(mapping=aes(x='Importance', y='Feature', fill='Feature', color='Feature'), stat='identity')
+        + guides(color="none")
+        + labs(
+          title="Feature Importance of Shallow Model",
+          subtitle="The top 10 most important features are shown that helped the model learn on the data.",
+          x="Importance",
+          y="Feature",
+          fill='Feature'
+        )
+        + theme(
+            panel_background=element_rect(fill='gray'),
+            plot_background=element_rect(fill='gray'),
+            panel_grid_major=element_rect(fill='gray'),
+            legend_background=element_rect(fill='gray'),
+            axis_text=element_text(color='white'),
+            axis_title=element_text(color='white'),
+            plot_title=element_text(color='white'),
+            plot_subtitle=element_text(color='white'),
+            legend_text=element_text(color='white'),
+            legend_title=element_text(color='white'),
+            label_text=element_text(color='white')
+        )
+        + ggsize(1600, 900)
+  )
 
+  feats_bar_deep = (
+    ggplot(data=top_deep_feats)
+        + geom_bar(mapping=aes(x='Importance', y='Feature', fill='Feature', color='Feature'), stat='identity')
+        + guides(color="none")
+        + labs(
+          title="Feature Importance of Deep Model",
+          subtitle="The top 10 most important features are shown that helped the model learn on the data.",
+          x="Importance",
+          y="Feature",
+          fill='Feature'
+        )
+        + theme(
+            panel_background=element_rect(fill='gray'),
+            plot_background=element_rect(fill='gray'),
+            panel_grid_major=element_rect(fill='gray'),
+            legend_background=element_rect(fill='gray'),
+            axis_text=element_text(color='white'),
+            axis_title=element_text(color='white'),
+            plot_title=element_text(color='white'),
+            plot_subtitle=element_text(color='white'),
+            legend_text=element_text(color='white'),
+            legend_title=element_text(color='white'),
+            label_text=element_text(color='white')
+        )
+        + ggsize(1600, 900)
+  )
 
+  display(feats_bar_shallow)
+  display(feats_bar_deep)
+else:
+  print("CUDA is not available!")
+```
+
+```{python}
+# SHAP method
+# Wrap model prediction function
+def model_predict(x):
+    model.eval()
+    with torch.no_grad():
+        logits = model(torch.tensor(x, dtype=torch.float32)).squeeze()
+        return torch.sigmoid(logits).numpy()
+
+explainer = shap.DeepExplainer(model, torch.tensor(X_train, dtype=torch.float32))
+shap_values = explainer.shap_values(torch.tensor(X_test, dtype=torch.float32))
+
+shap.summary_plot(shap_values, X_test, feature_names=["feature1", "feature2"])
+
+```
+
+```{python}
+# Integrated gradients method
+input_tensor = torch.tensor(X_test[0], dtype=torch.float32)
+attr = integrated_gradients(model, input_tensor.unsqueeze(0))
+print(f"Integrated gradients for input 0: {attr}")
 ```
 
 ## QUESTION 2

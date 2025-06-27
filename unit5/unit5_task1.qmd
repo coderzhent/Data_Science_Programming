@@ -1,0 +1,226 @@
+---
+title: "Client Report - The War with Star Wars"
+subtitle: "Unit 5 Task 1"
+author: "Ezekial Curran"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd
+import polars as pl
+import numpy as np
+from lets_plot import *
+# add the additional libraries you need to import for ML here
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# import your data here using pandas and the URL
+url = "https://github.com/fivethirtyeight/data/raw/master/star-wars-survey/StarWars.csv"
+df = pl.read_csv("StarWars.csv")
+```
+
+## QUESTION 1
+
+__Shorten the column names and clean them up for easier use with pandas.__ Provide a table or list that exemplifies how you fixed the names.  
+
+Many of the names were manually renamed, other names were taken from the column details and adapted to lower case and had the spaces replaced with underscores.
+
+```{python}
+# Include and execute your code here
+# Fix UTF encoding
+# Create a readme/data.md using the og column names
+df_clean = df.rename({
+  df.columns[1]: "seen",
+  df.columns[2]: "fan",
+  df.columns[3]: "seen_epi_i",
+  df.columns[4]: "seen_epi_ii",
+  df.columns[5]: "seen_epi_iii",
+  df.columns[6]: "seen_epi_iv",
+  df.columns[7]: "seen_epi_v",
+  df.columns[8]: "seen_epi_vi",
+  df.columns[9]: "rank_epi_i",
+  df.columns[10]: "rank_epi_ii",
+  df.columns[11]: "rank_epi_iii",
+  df.columns[12]: "rank_epi_iv",
+  df.columns[13]: "rank_epi_v",
+  df.columns[14]: "rank_epi_vi",
+  df.columns[15]: df[df.columns[15]][0].lower().replace(' ', '_'),
+  df.columns[16]: df[df.columns[16]][0].lower().replace(' ', '_'),
+  df.columns[17]: df[df.columns[17]][0].lower().replace(' ', '_'),
+  df.columns[18]: df[df.columns[18]][0].lower().replace(' ', '_'),
+  df.columns[19]: df[df.columns[19]][0].lower().replace(' ', '_'),
+  df.columns[20]: df[df.columns[20]][0].lower().replace(' ', '_'),
+  df.columns[21]: df[df.columns[21]][0].lower().replace(' ', '_'),
+  df.columns[22]: df[df.columns[22]][0].lower().replace(' ', '_'),
+  df.columns[23]: df[df.columns[23]][0].lower().replace(' ', '_'),
+  df.columns[24]: df[df.columns[24]][0].lower().replace(' ', '_'),
+  df.columns[25]: df[df.columns[25]][0].lower().replace(' ', '_'),
+  df.columns[26]: df[df.columns[26]][0].lower().replace(' ', '_'),
+  df.columns[27]: df[df.columns[27]][0].lower().replace(' ', '_'),
+  df.columns[28]: df[df.columns[28]][0].lower().replace(' ', '_'),
+  df.columns[29]: "shot_first",
+  df.columns[30]: "ex_uni",
+  df.columns[31]: "fan_ex_uni",
+  df.columns[32]: "fan_star_trek",
+  df.columns[33]: df.columns[33].lower().replace(' ', '_'),
+  df.columns[34]: df.columns[34].lower().replace(' ', '_'),
+  df.columns[35]: df.columns[35].lower().replace(' ', '_'),
+  df.columns[36]: df.columns[36].lower().replace(' ', '_'),
+  df.columns[37]: "location"
+})
+
+df_clean = df_clean[1:]
+```
+
+
+## QUESTION 2
+
+__Filter the dataset to 835 respondents that have seen at least one film__ (Hint: Don't use the column `Have you seen any of the 6 films in the Star Wars franchise?`) Not much to show here by way of output. Print the shape (i.e. number of rows and number of columns) of the filtered dataset.
+
+Gathering the shape of the seen movies, the count is 835.
+
+```{python}
+# Include and execute your code here
+seen_cols = ["seen_epi_i", "seen_epi_ii", "seen_epi_iii", "seen_epi_iv", "seen_epi_v", "seen_epi_vi",]
+
+df_seen = df_clean.filter(
+  (pl.col(df_clean.columns[3]).is_not_null())
+  | (pl.col(df_clean.columns[4]).is_not_null())
+  | (pl.col(df_clean.columns[5]).is_not_null())
+  | (pl.col(df_clean.columns[6]).is_not_null())
+  | (pl.col(df_clean.columns[7]).is_not_null())
+  | (pl.col(df_clean.columns[8]).is_not_null())
+).select(seen_cols)
+
+movies = ["The Phantom Menace", "Attack of the Clones", "Revenge of the Sith", "A New Hope", "The Empire Strikes Back", "Return of the Jedi"]
+seen_counts = [df_seen[col].count() for col in seen_cols]
+seen_percs = [i / df_seen.shape[0] for i in seen_counts]
+df_percs = pl.DataFrame({"movie": movies[::-1], "percentage": seen_percs[::-1]})
+df_percs = df_percs.with_columns(
+  ((pl.col("percentage") * 100).round(0).cast(pl.Int64).cast(pl.String) + '%').alias('perc_label')
+)
+
+rank_cols = ["rank_epi_i", "rank_epi_ii", "rank_epi_iii", "rank_epi_iv", "rank_epi_v", "rank_epi_vi",]
+
+df_rank = df_clean.filter(
+  (pl.col(df_clean.columns[3]).is_not_null())
+  & (pl.col(df_clean.columns[4]).is_not_null())
+  & (pl.col(df_clean.columns[5]).is_not_null())
+  & (pl.col(df_clean.columns[6]).is_not_null())
+  & (pl.col(df_clean.columns[7]).is_not_null())
+  & (pl.col(df_clean.columns[8]).is_not_null())
+).select(rank_cols)
+
+# Episode 3 has 1 missing rank (when compared to the other movies the rank option left is 6)
+df_rank = df_rank.with_columns(pl.col('rank_epi_iii').fill_null("6"))
+
+rank_counts = [df_rank.filter(pl.col(i) == "1").height for i in rank_cols]
+# .height = .shape[0] in polars
+rank_percs = [i / df_rank.height for i in rank_counts]
+df_rank_percs = pl.DataFrame({"movie": movies[::-1], "percentage": rank_percs[::-1]})
+df_rank_percs = df_rank_percs.with_columns(
+  ((pl.col("percentage") * 100).round(0).cast(pl.Int64).cast(pl.String) + '%').alias('perc_label')
+)
+
+print(f"The number of respondents that have seen at least one movie: {df_seen.height}")
+```
+
+## QUESTION 3
+
+__Validate that the data provided on GitHub lines up with the article by recreating 2 of the visuals from the article.__  These visuals should be similar, but don't have to be exact. They need to be close enough that we can validate that the values in the dataset match the graphs in the chart. Though their charts were built using a different plotting software, the more you push yourself for an exact replica, the more you will learn. Spend at least a couple of hours on this.
+
+_The Empire Strikes Back_ is the most seen film of the saga. It also happens to be the favorite.
+
+```{python}
+# Include and execute your code here
+movie_graph = (
+    ggplot(data=df_percs)
+    + geom_bar(mapping=aes(x='percentage', y='movie'), stat='identity', orientation='y', color="lightblue", fill="lightblue")
+    + labs(
+      title="Which 'Star Wars' Movie's Have You Seen?",
+      subtitle="Of 835 respondents who have seen any film",
+      x='',
+      y=''
+    )
+    + scale_x_continuous(limits=[0,1])
+    + geom_text(aes(x='percentage', y='movie', label='perc_label'), nudge_x=0.075, size=12, color='black')
+    + theme(
+        panel_background=element_rect(fill='gray', linetype=0),
+        plot_background=element_rect(fill='gray'),
+        # panel_grid_major=element_rect(fill='gray'),
+        panel_grid=element_blank(),
+        legend_background=element_rect(fill='gray'),
+        axis_text=element_text(color='black', size=18),
+        # axis_title=element_text(color='white'),
+        plot_title=element_text(color='black', face="bold", hjust=0, size=25),
+        plot_subtitle=element_text(color='black', hjust=0, size=20),
+        legend_text=element_text(color='white'),
+        legend_title=element_text(color='white'),
+        label_text=element_text(color='white'),
+        axis_line_x=element_blank(),
+        axis_ticks_x=element_blank(),
+        axis_text_x=element_blank(),
+        plot_title_position='plot'
+    )
+    + ggsize(1600, 900)
+)
+
+display(movie_graph)
+```
+
+```{python}
+rank_graph = (
+    ggplot(data=df_rank_percs)
+    + geom_bar(mapping=aes(x='percentage', y='movie'), stat='identity', orientation='y', color="lightblue", fill="lightblue")
+    + labs(
+      title="What's the Best 'Star Wars' Movie?",
+      subtitle="Of 741 respondents who have seen all 6 films",
+      x='',
+      y=''
+    )
+    + scale_x_continuous(limits=[0,0.5])
+    + geom_text(aes(x='percentage', y='movie', label='perc_label'), nudge_x=0.075, size=12, color='black')
+    + theme(
+        panel_background=element_rect(fill='gray', linetype=0),
+        plot_background=element_rect(fill='gray'),
+        panel_grid=element_blank(),
+        legend_background=element_rect(fill='gray'),
+        axis_text=element_text(color='black', size=18),
+        plot_title=element_text(color='black', face="bold", hjust=0, size=25),
+        plot_subtitle=element_text(color='black', hjust=0, size=20),
+        legend_text=element_text(color='white'),
+        legend_title=element_text(color='white'),
+        label_text=element_text(color='white'),
+        axis_line_x=element_blank(),
+        axis_ticks_x=element_blank(),
+        axis_text_x=element_blank(),
+        plot_title_position='plot'
+    )
+    + ggsize(1600, 900)
+)
+
+display(rank_graph)
+```
