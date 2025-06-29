@@ -63,6 +63,7 @@ url3 = "https://github.com/byuidatascience/data4dwellings/raw/master/data-raw/dw
 url4 = "https://github.com/byuidatascience/data4dwellings/blob/master/data.md"
 
 df = pl.read_csv('dwellings_ml.csv')
+rand_state = 42
 ```
 
 ## Supplimental Code
@@ -200,7 +201,7 @@ def find_importances(model, X, y):
     wrapped_model,
     X.to_numpy(), y.to_numpy(),
     n_repeats=10,
-    random_state=117,
+    random_state=rand_state,
     n_jobs=-1
   )
 
@@ -245,11 +246,11 @@ if (torch.cuda.is_available()):
   print(f"CUDA is available, using the GPU")
   print(torch.cuda.get_device_name(0))
   device = torch.device("cuda")
-  torch.cuda.manual_seed(117)
+  torch.cuda.manual_seed(rand_state)
 else:
   print(f"CUDA is not available, using the CPU")
   device = torch.device("cpu")
-  torch.manual_seed(117)
+  torch.manual_seed(rand_state)
 
 X_df = df.drop(["parcel", "before1980", "yrbuilt"])
 y_df = df.select(["before1980"])
@@ -261,7 +262,7 @@ y = y_df.to_numpy()
 scaler = StandardScaler()
 X = scaler.fit_transform(X)
 
-X_trn, X_tst, y_trn, y_tst = train_test_split(X, y, test_size=0.2, random_state=117)
+X_trn, X_tst, y_trn, y_tst = train_test_split(X, y, test_size=0.2, random_state=rand_state)
 
 X_trn_tensor = torch.tensor(X_trn, dtype=torch.float32)
 y_trn_tensor = torch.tensor(y_trn, dtype=torch.float32).view(-1, 1)
@@ -310,7 +311,7 @@ res = pl.DataFrame({
   "f1_deep": f1_deep
 })
 
-kf = KFold(n_splits=5, shuffle=True, random_state=117)
+kf = KFold(n_splits=5, shuffle=True, random_state=rand_state)
 
 shall_losses = np.zeros(num_epochs)
 shall_accs = np.zeros(num_epochs)

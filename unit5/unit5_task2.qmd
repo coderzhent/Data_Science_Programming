@@ -26,8 +26,11 @@ execute:
 ---
 
 ```{python}
-import pandas as pd 
+# import pandas as pd
+import polars as pl
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
 from lets_plot import *
 # add the additional libraries you need to import for ML here
 
@@ -37,8 +40,51 @@ LetsPlot.setup_html(isolated_frame=True)
 
 ```{python}
 # import your data here using pandas and the URL
+url = "https://github.com/fivethirtyeight/data/raw/master/star-wars-survey/StarWars.csv"
+df = pl.read_csv("StarWars.csv")
 
 
+df_clean = df.rename({
+  df.columns[1]: "seen",
+  df.columns[2]: "fan",
+  df.columns[3]: "seen_epi_i",
+  df.columns[4]: "seen_epi_ii",
+  df.columns[5]: "seen_epi_iii",
+  df.columns[6]: "seen_epi_iv",
+  df.columns[7]: "seen_epi_v",
+  df.columns[8]: "seen_epi_vi",
+  df.columns[9]: "rank_epi_i",
+  df.columns[10]: "rank_epi_ii",
+  df.columns[11]: "rank_epi_iii",
+  df.columns[12]: "rank_epi_iv",
+  df.columns[13]: "rank_epi_v",
+  df.columns[14]: "rank_epi_vi",
+  df.columns[15]: df[df.columns[15]][0].lower().replace(' ', '_'),
+  df.columns[16]: df[df.columns[16]][0].lower().replace(' ', '_'),
+  df.columns[17]: df[df.columns[17]][0].lower().replace(' ', '_'),
+  df.columns[18]: df[df.columns[18]][0].lower().replace(' ', '_'),
+  df.columns[19]: df[df.columns[19]][0].lower().replace(' ', '_'),
+  df.columns[20]: df[df.columns[20]][0].lower().replace(' ', '_'),
+  df.columns[21]: df[df.columns[21]][0].lower().replace(' ', '_'),
+  df.columns[22]: df[df.columns[22]][0].lower().replace(' ', '_'),
+  df.columns[23]: df[df.columns[23]][0].lower().replace(' ', '_'),
+  df.columns[24]: df[df.columns[24]][0].lower().replace(' ', '_'),
+  df.columns[25]: df[df.columns[25]][0].lower().replace(' ', '_'),
+  df.columns[26]: df[df.columns[26]][0].lower().replace(' ', '_'),
+  df.columns[27]: df[df.columns[27]][0].lower().replace(' ', '_'),
+  df.columns[28]: df[df.columns[28]][0].lower().replace(' ', '_'),
+  df.columns[29]: "shot_first",
+  df.columns[30]: "ex_uni",
+  df.columns[31]: "fan_ex_uni",
+  df.columns[32]: "fan_star_trek",
+  df.columns[33]: df.columns[33].lower().replace(' ', '_'),
+  df.columns[34]: df.columns[34].lower().replace(' ', '_'),
+  df.columns[35]: df.columns[35].lower().replace(' ', '_'),
+  df.columns[36]: df.columns[36].lower().replace(' ', '_'),
+  df.columns[37]: "location"
+})
+
+df_clean = df_clean[1:]
 ```
 
 ## QUESTION 1
@@ -46,17 +92,93 @@ LetsPlot.setup_html(isolated_frame=True)
 1. __Clean and format the data so that it can be used in a machine learning model.__ As you format the data, you should complete each item listed below. In your final report provide an excerpt of the reformatted data with a short description of the changes made.  
 
     a. Create a new column that converts the age ranges to a single number. Drop the age range categorical column  
-    a. Create a new column that converts the education groupings to a single number. Drop the school categorical column  
-    a. Create a new column that converts the income ranges to a single number. Drop the income range categorical column  
-    a. Create your target (also known as “y” or “label”) column based on the new income range column  
-    a. Encode favorability ratings as a number. Remove the favorability categorical columns.
-    a. One-hot encode all remaining categorical columns
+    b. Create a new column that converts the education groupings to a single number. Drop the school categorical column  
+    c. Create a new column that converts the income ranges to a single number. Drop the income range categorical column  
+    d. Create your target (also known as “y” or “label”) column based on the new income range column  
+    e. Encode favorability ratings as a number. Remove the favorability categorical columns.
+    f. One-hot encode all remaining categorical columns
 
-_type your write-up and analysis here_
+Age ranges were manually converted to a single number, each number representing an age group, except for 0. Null values or missing values are represented by 0, this will hold for all the manual changes on additional columns. Education had each value encoded incrementing based on the level of education. When converting the income ranges into single numbers, the higher the number the greater the income. performing part d now doesn't make sense until just before a train test split, but was done regardless. Favorability columns were ranged from 1 to 6, with 6 being favorable and a 0 being a missing value. One-Hot encoding handled the remainder of the categorical columns.
 
 ```{python}
 # Include and execute your code here
+# Part A:
+df_clean = df_clean.with_columns(
+  pl.when((pl.col('age') == "> 60"))
+  .then(4)
+  .when((pl.col('age') == "45-60"))
+  .then(3)
+  .when((pl.col('age') == "30-44"))
+  .then(2)
+  .when((pl.col('age') == "18-29"))
+  .then(1)
+  .otherwise(0)
+  .alias("age_num")
+)
+df_clean = df_clean.drop("age")
 
+# Part B:
+df_clean = df_clean.with_columns(
+  pl.when((pl.col('education') == "Graduate degree"))
+  .then(5)
+  .when((pl.col('education') == "Bachelor degree"))
+  .then(4)
+  .when((pl.col('education') == "Some college or Associate degree"))
+  .then(3)
+  .when((pl.col('education') == "High school degree"))
+  .then(2)
+  .when((pl.col('education') == "Less than high school degree"))
+  .then(1)
+  .otherwise(0)
+  .alias("education_num")
+)
+df_clean = df_clean.drop("education")
 
+# Part C:
+df_clean = df_clean.with_columns(
+  pl.when((pl.col('household_income') == '$150,000+'))
+  .then(5)
+  .when((pl.col('household_income') == '$100,000 - $149,999'))
+  .then(4)
+  .when((pl.col('household_income') == '$50,000 - $99,999'))
+  .then(3)
+  .when((pl.col('household_income') == '$25,000 - $49,999'))
+  .then(2)
+  .when((pl.col('household_income') == '$0 - $24,999'))
+  .then(1)
+  .otherwise(0)
+  .alias("income")
+)
+df_clean = df_clean.drop('household_income')
+
+# Part D:
+X = df_clean.drop('income')
+y = df_clean.select('income')
+
+# Part E:
+df_clean = df_clean.with_columns(
+  pl.when((pl.col(df_clean.columns[i]) == "Very favorably"))
+  .then(6)
+  .when((pl.col(df_clean.columns[i]) == "Somewhat favorably"))
+  .then(5)
+  .when((pl.col(df_clean.columns[i]) == "Neither favorably nor unfavorably (neutral)"))
+  .then(4)
+  .when((pl.col(df_clean.columns[i]) == "Somewhat unfavorably"))
+  .then(3)
+  .when((pl.col(df_clean.columns[i]) == "Very unfavorably"))
+  .then(2)
+  .when((pl.col(df_clean.columns[i]) == "Unfamiliar (N/A)"))
+  .then(1)
+  .otherwise(0)
+  .alias(df_clean.columns[i]) for i in range(15, 29)
+)
+
+# Part F:
+cat_cols = ['seen', 'fan', 'seen_epi_i', 'seen_epi_ii', 'seen_epi_iii', 'seen_epi_iv', 'seen_epi_v', 'seen_epi_vi', 'shot_first', 'ex_uni', 'fan_ex_uni', 'fan_star_trek', 'gender', 'location']
+enc = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+enc_ar = enc.fit_transform(df_clean[cat_cols])
+enc_cols = list(enc.get_feature_names_out(cat_cols))
+enc_df = pl.DataFrame(enc_ar, schema=enc_cols)
+df_tot = pl.concat([df_clean.drop(cat_cols), enc_df], how='horizontal')
 ```
 
