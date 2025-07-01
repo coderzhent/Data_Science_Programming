@@ -2216,7 +2216,7 @@ vertical-align: -.125em;
   <li><a href="#question-1" id="toc-question-1">QUESTION 1</a></li>
   </ul>
 </nav>
-<div id="bf70f9d3" class="cell" data-execution_count="1">
+<div id="b2d4aac0" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># import pandas as pd</span></span>
@@ -2230,55 +2230,28 @@ vertical-align: -.125em;
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>LetsPlot.setup_html(isolated_frame<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div id="c14a499b" class="cell" data-execution_count="2">
+<div id="fb36276e" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># import your data here using pandas and the URL</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">&quot;https://github.com/fivethirtyeight/data/raw/master/star-wars-survey/StarWars.csv&quot;</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pl.read_csv(<span class="st">&quot;StarWars.csv&quot;</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>df_clean <span class="op">=</span> df.rename({</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">1</span>]: <span class="st">&quot;seen&quot;</span>,</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">2</span>]: <span class="st">&quot;fan&quot;</span>,</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">3</span>]: <span class="st">&quot;seen_epi_i&quot;</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">4</span>]: <span class="st">&quot;seen_epi_ii&quot;</span>,</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">5</span>]: <span class="st">&quot;seen_epi_iii&quot;</span>,</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">6</span>]: <span class="st">&quot;seen_epi_iv&quot;</span>,</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">7</span>]: <span class="st">&quot;seen_epi_v&quot;</span>,</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">8</span>]: <span class="st">&quot;seen_epi_vi&quot;</span>,</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">9</span>]: <span class="st">&quot;rank_epi_i&quot;</span>,</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">10</span>]: <span class="st">&quot;rank_epi_ii&quot;</span>,</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">11</span>]: <span class="st">&quot;rank_epi_iii&quot;</span>,</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">12</span>]: <span class="st">&quot;rank_epi_iv&quot;</span>,</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">13</span>]: <span class="st">&quot;rank_epi_v&quot;</span>,</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">14</span>]: <span class="st">&quot;rank_epi_vi&quot;</span>,</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">15</span>]: df[df.columns[<span class="dv">15</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">16</span>]: df[df.columns[<span class="dv">16</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">17</span>]: df[df.columns[<span class="dv">17</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">18</span>]: df[df.columns[<span class="dv">18</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">19</span>]: df[df.columns[<span class="dv">19</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">20</span>]: df[df.columns[<span class="dv">20</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">21</span>]: df[df.columns[<span class="dv">21</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">22</span>]: df[df.columns[<span class="dv">22</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">23</span>]: df[df.columns[<span class="dv">23</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">24</span>]: df[df.columns[<span class="dv">24</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">25</span>]: df[df.columns[<span class="dv">25</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">26</span>]: df[df.columns[<span class="dv">26</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">27</span>]: df[df.columns[<span class="dv">27</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">28</span>]: df[df.columns[<span class="dv">28</span>]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">29</span>]: <span class="st">&quot;shot_first&quot;</span>,</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">30</span>]: <span class="st">&quot;ex_uni&quot;</span>,</span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">31</span>]: <span class="st">&quot;fan_ex_uni&quot;</span>,</span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">32</span>]: <span class="st">&quot;fan_star_trek&quot;</span>,</span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">33</span>]: df.columns[<span class="dv">33</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">34</span>]: df.columns[<span class="dv">34</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">35</span>]: df.columns[<span class="dv">35</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">36</span>]: df.columns[<span class="dv">36</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>),</span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>  df.columns[<span class="dv">37</span>]: <span class="st">&quot;location&quot;</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>df_clean <span class="op">=</span> df_clean[<span class="dv">1</span>:]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>df_clean <span class="op">=</span> df.rename({</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    df.columns[<span class="dv">1</span>]: <span class="st">&quot;seen&quot;</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    df.columns[<span class="dv">2</span>]: <span class="st">&quot;fan&quot;</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>{df.columns[i]: <span class="ss">f&quot;seen_epi_</span><span class="sc">{</span>[<span class="st">&#39;i&#39;</span>, <span class="st">&#39;ii&#39;</span>, <span class="st">&#39;iii&#39;</span>, <span class="st">&#39;iv&#39;</span>, <span class="st">&#39;v&#39;</span>, <span class="st">&#39;vi&#39;</span>][i <span class="op">-</span> <span class="dv">3</span>]<span class="sc">}</span><span class="ss">&quot;</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>, <span class="dv">9</span>)},</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>{df.columns[i]: <span class="ss">f&quot;rank_epi_</span><span class="sc">{</span>[<span class="st">&#39;i&#39;</span>, <span class="st">&#39;ii&#39;</span>, <span class="st">&#39;iii&#39;</span>, <span class="st">&#39;iv&#39;</span>, <span class="st">&#39;v&#39;</span>, <span class="st">&#39;vi&#39;</span>][i <span class="op">-</span> <span class="dv">9</span>]<span class="sc">}</span><span class="ss">&quot;</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">9</span>, <span class="dv">15</span>)},</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>{df.columns[i]: df[df.columns[i]][<span class="dv">0</span>].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>) <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">15</span>, <span class="dv">29</span>)},</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    df.columns[<span class="dv">29</span>]: <span class="st">&quot;shot_first&quot;</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    df.columns[<span class="dv">30</span>]: <span class="st">&quot;ex_uni&quot;</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    df.columns[<span class="dv">31</span>]: <span class="st">&quot;fan_ex_uni&quot;</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    df.columns[<span class="dv">32</span>]: <span class="st">&quot;fan_star_trek&quot;</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>{df.columns[i]: df.columns[i].lower().replace(<span class="st">&#39; &#39;</span>, <span class="st">&#39;_&#39;</span>) <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">33</span>, <span class="dv">37</span>)},</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    df.columns[<span class="dv">37</span>]: <span class="st">&quot;location&quot;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>df_clean <span class="op">=</span> df_clean[<span class="dv">1</span>:]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <section id="question-1" class="level2">
@@ -2299,7 +2272,7 @@ vertical-align: -.125em;
 </ol></li>
 </ol>
 <p>Age ranges were manually converted to a single number, each number representing an age group, except for 0. Null values or missing values are represented by 0, this will hold for all the manual changes on additional columns. Education had each value encoded incrementing based on the level of education. When converting the income ranges into single numbers, the higher the number the greater the income. performing part d now doesn’t make sense until just before a train test split, but was done regardless. Favorability columns were ranged from 1 to 6, with 6 being favorable and a 0 being a missing value. One-Hot encoding handled the remainder of the categorical columns.</p>
-<div id="a585eee4" class="cell" data-execution_count="3">
+<div id="6b3cf02b" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Include and execute your code here</span></span>
@@ -2375,7 +2348,7 @@ vertical-align: -.125em;
 <span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a><span class="co"># Part F:</span></span>
-<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>cat_cols <span class="op">=</span> [<span class="st">&#39;seen&#39;</span>, <span class="st">&#39;fan&#39;</span>, <span class="st">&#39;seen_epi_i&#39;</span>, <span class="st">&#39;seen_epi_ii&#39;</span>, <span class="st">&#39;seen_epi_iii&#39;</span>, <span class="st">&#39;seen_epi_iv&#39;</span>, <span class="st">&#39;seen_epi_v&#39;</span>, <span class="st">&#39;seen_epi_vi&#39;</span>, <span class="st">&#39;shot_first&#39;</span>, <span class="st">&#39;ex_uni&#39;</span>, <span class="st">&#39;fan_ex_uni&#39;</span>, <span class="st">&#39;fan_star_trek&#39;</span>, <span class="st">&#39;gender&#39;</span>, <span class="st">&#39;location&#39;</span>]</span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>cat_cols <span class="op">=</span> [<span class="st">&#39;rank_epi_i&#39;</span>, <span class="st">&#39;rank_epi_ii&#39;</span>, <span class="st">&#39;rank_epi_iii&#39;</span>, <span class="st">&#39;rank_epi_iv&#39;</span>, <span class="st">&#39;rank_epi_v&#39;</span>, <span class="st">&#39;rank_epi_vi&#39;</span>, <span class="st">&#39;seen&#39;</span>, <span class="st">&#39;fan&#39;</span>, <span class="st">&#39;seen_epi_i&#39;</span>, <span class="st">&#39;seen_epi_ii&#39;</span>, <span class="st">&#39;seen_epi_iii&#39;</span>, <span class="st">&#39;seen_epi_iv&#39;</span>, <span class="st">&#39;seen_epi_v&#39;</span>, <span class="st">&#39;seen_epi_vi&#39;</span>, <span class="st">&#39;shot_first&#39;</span>, <span class="st">&#39;ex_uni&#39;</span>, <span class="st">&#39;fan_ex_uni&#39;</span>, <span class="st">&#39;fan_star_trek&#39;</span>, <span class="st">&#39;gender&#39;</span>, <span class="st">&#39;location&#39;</span>]</span>
 <span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>enc <span class="op">=</span> OneHotEncoder(handle_unknown<span class="op">=</span><span class="st">&#39;ignore&#39;</span>, sparse_output<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>enc_ar <span class="op">=</span> enc.fit_transform(df_clean[cat_cols])</span>
 <span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>enc_cols <span class="op">=</span> <span class="bu">list</span>(enc.get_feature_names_out(cat_cols))</span>
@@ -2392,17 +2365,11 @@ text-align: right;
 white-space: pre-wrap;
 }
 </style>
-<small>shape: (5, 67)</small>
+<small>shape: (5, 103)</small>
 <table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
 <th data-quarto-table-cell-role="th">RespondentID</th>
-<th data-quarto-table-cell-role="th">rank_epi_i</th>
-<th data-quarto-table-cell-role="th">rank_epi_ii</th>
-<th data-quarto-table-cell-role="th">rank_epi_iii</th>
-<th data-quarto-table-cell-role="th">rank_epi_iv</th>
-<th data-quarto-table-cell-role="th">rank_epi_v</th>
-<th data-quarto-table-cell-role="th">rank_epi_vi</th>
 <th data-quarto-table-cell-role="th">han_solo</th>
 <th data-quarto-table-cell-role="th">luke_skywalker</th>
 <th data-quarto-table-cell-role="th">princess_leia_organa</th>
@@ -2420,12 +2387,26 @@ white-space: pre-wrap;
 <th data-quarto-table-cell-role="th">age_num</th>
 <th data-quarto-table-cell-role="th">education_num</th>
 <th data-quarto-table-cell-role="th">income</th>
-<th data-quarto-table-cell-role="th">seen_No</th>
-<th data-quarto-table-cell-role="th">seen_Yes</th>
-<th data-quarto-table-cell-role="th">fan_No</th>
-<th data-quarto-table-cell-role="th">fan_Yes</th>
-<th data-quarto-table-cell-role="th">fan_None</th>
-<th data-quarto-table-cell-role="th">seen_epi_i_Star Wars: Episode I The Phantom Menace</th>
+<th data-quarto-table-cell-role="th">rank_epi_i_1</th>
+<th data-quarto-table-cell-role="th">rank_epi_i_2</th>
+<th data-quarto-table-cell-role="th">rank_epi_i_3</th>
+<th data-quarto-table-cell-role="th">rank_epi_i_4</th>
+<th data-quarto-table-cell-role="th">rank_epi_i_5</th>
+<th data-quarto-table-cell-role="th">rank_epi_i_6</th>
+<th data-quarto-table-cell-role="th">rank_epi_i_None</th>
+<th data-quarto-table-cell-role="th">rank_epi_ii_1</th>
+<th data-quarto-table-cell-role="th">rank_epi_ii_2</th>
+<th data-quarto-table-cell-role="th">rank_epi_ii_3</th>
+<th data-quarto-table-cell-role="th">rank_epi_ii_4</th>
+<th data-quarto-table-cell-role="th">rank_epi_ii_5</th>
+<th data-quarto-table-cell-role="th">rank_epi_ii_6</th>
+<th data-quarto-table-cell-role="th">rank_epi_ii_None</th>
+<th data-quarto-table-cell-role="th">rank_epi_iii_1</th>
+<th data-quarto-table-cell-role="th">rank_epi_iii_2</th>
+<th data-quarto-table-cell-role="th">rank_epi_iii_3</th>
+<th data-quarto-table-cell-role="th">rank_epi_iii_4</th>
+<th data-quarto-table-cell-role="th">rank_epi_iii_5</th>
+<th data-quarto-table-cell-role="th">…</th>
 <th data-quarto-table-cell-role="th">seen_epi_i_None</th>
 <th data-quarto-table-cell-role="th">seen_epi_ii_Star Wars: Episode II Attack of the Clones</th>
 <th data-quarto-table-cell-role="th">seen_epi_ii_None</th>
@@ -2466,12 +2447,6 @@ white-space: pre-wrap;
 </tr>
 <tr class="even">
 <th>i64</th>
-<th>str</th>
-<th>str</th>
-<th>str</th>
-<th>str</th>
-<th>str</th>
-<th>str</th>
 <th>i32</th>
 <th>i32</th>
 <th>i32</th>
@@ -2495,6 +2470,20 @@ white-space: pre-wrap;
 <th>f64</th>
 <th>f64</th>
 <th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>f64</th>
+<th>…</th>
 <th>f64</th>
 <th>f64</th>
 <th>f64</th>
@@ -2537,12 +2526,6 @@ white-space: pre-wrap;
 <tbody>
 <tr class="odd">
 <td>3292879998</td>
-<td>&quot;3&quot;</td>
-<td>&quot;2&quot;</td>
-<td>&quot;1&quot;</td>
-<td>&quot;4&quot;</td>
-<td>&quot;5&quot;</td>
-<td>&quot;6&quot;</td>
 <td>6</td>
 <td>6</td>
 <td>6</td>
@@ -2561,11 +2544,25 @@ white-space: pre-wrap;
 <td>2</td>
 <td>0</td>
 <td>0.0</td>
-<td>1.0</td>
 <td>0.0</td>
 <td>1.0</td>
 <td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
 <td>1.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>1.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>…</td>
 <td>0.0</td>
 <td>1.0</td>
 <td>0.0</td>
@@ -2606,12 +2603,6 @@ white-space: pre-wrap;
 </tr>
 <tr class="even">
 <td>3292879538</td>
-<td>null</td>
-<td>null</td>
-<td>null</td>
-<td>null</td>
-<td>null</td>
-<td>null</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
@@ -2629,12 +2620,26 @@ white-space: pre-wrap;
 <td>1</td>
 <td>4</td>
 <td>1</td>
-<td>1.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
 <td>0.0</td>
 <td>0.0</td>
 <td>0.0</td>
 <td>1.0</td>
 <td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>1.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>…</td>
 <td>1.0</td>
 <td>0.0</td>
 <td>1.0</td>
@@ -2675,12 +2680,6 @@ white-space: pre-wrap;
 </tr>
 <tr class="odd">
 <td>3292765271</td>
-<td>&quot;1&quot;</td>
-<td>&quot;2&quot;</td>
-<td>&quot;3&quot;</td>
-<td>&quot;4&quot;</td>
-<td>&quot;5&quot;</td>
-<td>&quot;6&quot;</td>
 <td>5</td>
 <td>5</td>
 <td>5</td>
@@ -2698,12 +2697,26 @@ white-space: pre-wrap;
 <td>1</td>
 <td>2</td>
 <td>1</td>
-<td>0.0</td>
-<td>1.0</td>
 <td>1.0</td>
 <td>0.0</td>
 <td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
 <td>1.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>1.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>…</td>
 <td>0.0</td>
 <td>1.0</td>
 <td>0.0</td>
@@ -2744,12 +2757,6 @@ white-space: pre-wrap;
 </tr>
 <tr class="even">
 <td>3292763116</td>
-<td>&quot;5&quot;</td>
-<td>&quot;6&quot;</td>
-<td>&quot;1&quot;</td>
-<td>&quot;2&quot;</td>
-<td>&quot;4&quot;</td>
-<td>&quot;3&quot;</td>
 <td>6</td>
 <td>6</td>
 <td>6</td>
@@ -2768,11 +2775,25 @@ white-space: pre-wrap;
 <td>3</td>
 <td>4</td>
 <td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
 <td>1.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
 <td>0.0</td>
 <td>1.0</td>
 <td>0.0</td>
 <td>1.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>…</td>
 <td>0.0</td>
 <td>1.0</td>
 <td>0.0</td>
@@ -2813,12 +2834,6 @@ white-space: pre-wrap;
 </tr>
 <tr class="odd">
 <td>3292731220</td>
-<td>&quot;5&quot;</td>
-<td>&quot;4&quot;</td>
-<td>&quot;6&quot;</td>
-<td>&quot;2&quot;</td>
-<td>&quot;1&quot;</td>
-<td>&quot;3&quot;</td>
 <td>6</td>
 <td>5</td>
 <td>5</td>
@@ -2837,11 +2852,25 @@ white-space: pre-wrap;
 <td>3</td>
 <td>4</td>
 <td>0.0</td>
-<td>1.0</td>
+<td>0.0</td>
+<td>0.0</td>
 <td>0.0</td>
 <td>1.0</td>
 <td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
 <td>1.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>…</td>
 <td>0.0</td>
 <td>1.0</td>
 <td>0.0</td>

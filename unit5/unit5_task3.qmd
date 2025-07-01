@@ -1,6 +1,6 @@
 ---
-title: "Client Report - Recoding Range Variables: Smarter than Dummy Encoding"
-subtitle: "Unit 5 Task 2"
+title: "Client Report - Star Wars for Dummies"
+subtitle: "Unit 5 Task 3"
 author: "Ezekial Curran"
 format:
   html:
@@ -26,12 +26,19 @@ execute:
 ---
 
 ```{python}
-# import pandas as pd
 import polars as pl
 import numpy as np
+from lets_plot import *
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
-from lets_plot import *
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import (
+  classification_report, 
+  accuracy_score, 
+  recall_score, 
+  precision_score, 
+  f1_score
+  )
 # add the additional libraries you need to import for ML here
 
 LetsPlot.setup_html(isolated_frame=True)
@@ -62,20 +69,15 @@ df_clean = df_clean[1:]
 
 ## QUESTION 1
 
-1. __Clean and format the data so that it can be used in a machine learning model.__ As you format the data, you should complete each item listed below. In your final report provide an excerpt of the reformatted data with a short description of the changes made.  
+1. __Prep the data for machine learning:__
+    a. Create your target (also known as “y” or “label”) column based on the new income range column  
+    a. One-hot encode all remaining categorical columns 
 
-    a. Create a new column that converts the age ranges to a single number. Drop the age range categorical column  
-    b. Create a new column that converts the education groupings to a single number. Drop the school categorical column  
-    c. Create a new column that converts the income ranges to a single number. Drop the income range categorical column  
-    d. Create your target (also known as “y” or “label”) column based on the new income range column  
-    e. Encode favorability ratings as a number. Remove the favorability categorical columns.
-    f. One-hot encode all remaining categorical columns
-
-Age ranges were manually converted to a single number, each number representing an age group, except for 0. Null values or missing values are represented by 0, this will hold for all the manual changes on additional columns. Education had each value encoded incrementing based on the level of education. When converting the income ranges into single numbers, the higher the number the greater the income. performing part d now doesn't make sense until just before a train test split, but was done regardless. Favorability columns were ranged from 1 to 6, with 6 being favorable and a 0 being a missing value. One-Hot encoding handled the remainder of the categorical columns.
+_type your write-up and analysis here_
 
 ```{python}
 # Include and execute your code here
-# Part A:
+
 df_clean = df_clean.with_columns(
   pl.when((pl.col('age') == "> 60"))
   .then(4)
@@ -88,9 +90,7 @@ df_clean = df_clean.with_columns(
   .otherwise(0)
   .alias("age_num")
 )
-df_clean = df_clean.drop("age")
 
-# Part B:
 df_clean = df_clean.with_columns(
   pl.when((pl.col('education') == "Graduate degree"))
   .then(5)
@@ -105,9 +105,7 @@ df_clean = df_clean.with_columns(
   .otherwise(0)
   .alias("education_num")
 )
-df_clean = df_clean.drop("education")
 
-# Part C:
 df_clean = df_clean.with_columns(
   pl.when((pl.col('household_income') == '$150,000+'))
   .then(5)
@@ -122,13 +120,7 @@ df_clean = df_clean.with_columns(
   .otherwise(0)
   .alias("income")
 )
-df_clean = df_clean.drop('household_income')
 
-# Part D:
-X = df_clean.drop('income')
-y = df_clean.select('income')
-
-# Part E:
 df_clean = df_clean.with_columns(
   pl.when((pl.col(df_clean.columns[i]) == "Very favorably"))
   .then(6)
@@ -146,14 +138,34 @@ df_clean = df_clean.with_columns(
   .alias(df_clean.columns[i]) for i in range(15, 29)
 )
 
-# Part F:
 cat_cols = ['rank_epi_i', 'rank_epi_ii', 'rank_epi_iii', 'rank_epi_iv', 'rank_epi_v', 'rank_epi_vi', 'seen', 'fan', 'seen_epi_i', 'seen_epi_ii', 'seen_epi_iii', 'seen_epi_iv', 'seen_epi_v', 'seen_epi_vi', 'shot_first', 'ex_uni', 'fan_ex_uni', 'fan_star_trek', 'gender', 'location']
+df_clean = df_clean.drop(['age', 'education', 'household_income'])
+
 enc = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
 enc_ar = enc.fit_transform(df_clean[cat_cols])
 enc_cols = list(enc.get_feature_names_out(cat_cols))
 enc_df = pl.DataFrame(enc_ar, schema=enc_cols)
 df_tot = pl.concat([df_clean.drop(cat_cols), enc_df], how='horizontal')
 
-display(df_tot.head())
+
+X = df_tot.drop(['RespondentID', 'income'])
+y = df_tot.select('income')
 ```
 
+
+## QUESTION 2
+
+1. __Build a machine learning model that predicts whether a person makes at least $50k. Describe your model and report the accuracy.__
+
+The classification of 3, 4, and 5 are all income ranges that are at least $50k. The model learned this very poorly. The accuracy based on the test is about 37%. This is very likely due to the significant amount of missing data present in the dataset. 
+
+```{python}
+# Include and execute your code here
+rnd = 343
+X_trn, X_tst, y_trn, y_tst = train_test_split(X, y, random_state=rnd, test_size=0.2)
+
+model = GradientBoostingClassifier()
+model.fit(X_trn, y_trn)
+pred = model.predict(X_tst)
+print(classification_report(y_tst, pred))
+```
