@@ -180,5 +180,7 @@ enc_ar = enc.fit_transform(df_clean[cat_cols])
 enc_cols = list(enc.get_feature_names_out(cat_cols))
 enc_df = pl.DataFrame(enc_ar, schema=enc_cols)
 df_tot = pl.concat([df_clean.drop(cat_cols), enc_df], how='horizontal')
+
+display(df_tot.head())
 ```
 

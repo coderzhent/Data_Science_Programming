@@ -92,6 +92,7 @@ df_clean = df.rename({
   df.columns[37]: "location"
 })
 
+display(df.head())
 df_clean = df_clean[1:]
 ```
 
