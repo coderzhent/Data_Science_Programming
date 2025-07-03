@@ -2216,191 +2216,160 @@ vertical-align: -.125em;
   <li><a href="#question-1" id="toc-question-1">QUESTION 1</a></li>
   </ul>
 </nav>
-<div id="11b007d2" class="cell" data-execution_count="1">
+<div id="87bd644c" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd </span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lets_plot <span class="im">import</span> <span class="op">*</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>LetsPlot.setup_html(isolated_frame<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lets_plot <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>LetsPlot.setup_html(isolated_frame<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div id="19d2e424" class="cell" data-execution_count="2">
+<div id="16aea6c2" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> pl.read_json(<span class="st">&#39;flights_missing.json&#39;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div id="0da98a9a" class="cell" data-execution_count="3">
+<div id="98927090" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Beginning of cleaning the data</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># print(flights_json.tail(5))</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>null_years <span class="op">=</span> flights_json[<span class="st">&#39;year&#39;</span>].is_null()</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(null_years)):</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> null_years[i] <span class="op">==</span> <span class="va">True</span>:</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        temp_col <span class="op">=</span> flights_json[<span class="st">&#39;year&#39;</span>].to_list()</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>            <span class="co"># print(f&quot;Changed null at: {i}&quot;)</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            temp_col[i] <span class="op">=</span> flights_json[<span class="st">&#39;year&#39;</span>][i <span class="op">+</span> <span class="dv">1</span>]</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>            <span class="co"># print(f&quot;Changed null at: {i}&quot;)</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>            temp_col[i] <span class="op">=</span> flights_json[<span class="st">&#39;year&#39;</span>][i <span class="op">-</span> <span class="dv">1</span>]</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        flights_json <span class="op">=</span> flights_json.with_columns(pl.Series(<span class="st">&#39;year&#39;</span>, temp_col))</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixing airport names:</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(flights_json[<span class="st">&#39;airport_name&#39;</span>])):</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> flights_json[<span class="st">&#39;airport_name&#39;</span>][i] <span class="op">==</span> <span class="st">&quot;&quot;</span>:</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        port <span class="op">=</span> (</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>            flights_json.<span class="bu">filter</span>((pl.col(<span class="st">&#39;airport_code&#39;</span>) <span class="op">==</span> flights_json[<span class="st">&#39;airport_code&#39;</span>][i]) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;airport_name&#39;</span>) <span class="op">!=</span> <span class="st">&quot;&quot;</span>))</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>            .select(<span class="st">&#39;airport_name&#39;</span>)</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>            .limit(<span class="dv">1</span>)</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>            .item()</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>        port_ID <span class="op">=</span> (</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>            flights_json.<span class="bu">filter</span>((pl.col(<span class="st">&#39;airport_code&#39;</span>) <span class="op">==</span> flights_json[<span class="st">&#39;airport_code&#39;</span>][i]) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;airport_name&#39;</span>) <span class="op">!=</span> <span class="st">&quot;&quot;</span>))</span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>            .select(<span class="st">&#39;airport_code&#39;</span>)</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>            .limit(<span class="dv">1</span>)</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>            .item()</span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>        flights_json <span class="op">=</span> flights_json.with_columns(</span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>            pl.when(pl.col(<span class="st">&#39;airport_code&#39;</span>) <span class="op">==</span> port_ID)</span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>            .then(pl.lit(port))</span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>            .otherwise(pl.col(<span class="st">&#39;airport_name&#39;</span>))</span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>            .alias(<span class="st">&#39;airport_name&#39;</span>)</span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>carrier_col <span class="op">=</span> flights_json[<span class="st">&#39;minutes_delayed_carrier&#39;</span>].to_list()</span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>nas_col <span class="op">=</span> flights_json[<span class="st">&#39;minutes_delayed_nas&#39;</span>].to_list()</span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(flights_json[<span class="st">&#39;minutes_delayed_total&#39;</span>])):</span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (carrier_col[i] <span class="op">==</span> <span class="va">None</span>) <span class="op">&amp;</span> (nas_col[i] <span class="op">==</span> <span class="va">None</span>):</span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>        val <span class="op">=</span> flights_json[<span class="st">&#39;minutes_delayed_total&#39;</span>][i] <span class="op">-</span> (</span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>            flights_json[<span class="st">&#39;minutes_delayed_late_aircraft&#39;</span>][i]</span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;minutes_delayed_security&#39;</span>][i]</span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;minutes_delayed_weather&#39;</span>][i]</span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>        carrier_col[i] <span class="op">=</span> val <span class="op">/</span> <span class="dv">2</span></span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>        nas_col[i] <span class="op">=</span> val <span class="op">/</span> <span class="dv">2</span></span>
-<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> carrier_col[i] <span class="op">==</span> <span class="va">None</span>:</span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>        val <span class="op">=</span> flights_json[<span class="st">&#39;minutes_delayed_total&#39;</span>][i] <span class="op">-</span> (</span>
-<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>            flights_json[<span class="st">&#39;minutes_delayed_late_aircraft&#39;</span>][i]</span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;minutes_delayed_security&#39;</span>][i]</span>
-<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;minutes_delayed_weather&#39;</span>][i]</span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;minutes_delayed_nas&#39;</span>][i]</span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>        carrier_col[i] <span class="op">=</span> val</span>
-<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> nas_col[i] <span class="op">==</span> <span class="va">None</span>:</span>
-<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>        val <span class="op">=</span> flights_json[<span class="st">&#39;minutes_delayed_total&#39;</span>][i] <span class="op">-</span> (</span>
-<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>            flights_json[<span class="st">&#39;minutes_delayed_late_aircraft&#39;</span>][i]</span>
-<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;minutes_delayed_security&#39;</span>][i]</span>
-<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;minutes_delayed_weather&#39;</span>][i]</span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;minutes_delayed_carrier&#39;</span>][i]</span>
-<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>        nas_col[i] <span class="op">=</span> val</span>
-<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(pl.Series(<span class="st">&#39;minutes_delayed_carrier&#39;</span>, carrier_col, dtype<span class="op">=</span>pl.Float64), pl.Series(<span class="st">&#39;minutes_delayed_nas&#39;</span>, nas_col, dtype<span class="op">=</span>pl.Float64))</span>
-<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>col_sz <span class="op">=</span> <span class="bu">len</span>(flights_json[<span class="st">&#39;month&#39;</span>])</span>
-<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>months <span class="op">=</span> flights_json[<span class="st">&#39;month&#39;</span>].to_list()</span>
-<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>mon_dic <span class="op">=</span> {<span class="dv">0</span>: <span class="st">&quot;January&quot;</span>, <span class="dv">1</span>: <span class="st">&quot;February&quot;</span>, <span class="dv">2</span>: <span class="st">&quot;March&quot;</span>, <span class="dv">3</span>: <span class="st">&quot;April&quot;</span>, <span class="dv">4</span>: <span class="st">&quot;May&quot;</span>, <span class="dv">5</span>: <span class="st">&quot;June&quot;</span>, <span class="dv">6</span>: <span class="st">&quot;July&quot;</span>, <span class="dv">7</span>: <span class="st">&quot;August&quot;</span>, <span class="dv">8</span>: <span class="st">&quot;September&quot;</span>, <span class="dv">9</span>: <span class="st">&quot;October&quot;</span>, <span class="dv">10</span>: <span class="st">&quot;November&quot;</span>, <span class="dv">11</span>: <span class="st">&quot;December&quot;</span>}</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;year&#39;</span>).fill_null(strategy<span class="op">=</span><span class="st">&#39;backward&#39;</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;month&#39;</span>).replace({<span class="st">&#39;Febuary&#39;</span>: <span class="st">&#39;February&#39;</span>}).alias(<span class="st">&#39;month&#39;</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># predicting months:</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    pl.when((pl.col(<span class="st">&#39;month&#39;</span>) <span class="op">==</span> <span class="st">&#39;n/a&#39;</span>) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;month&#39;</span>).shift(<span class="dv">1</span>) <span class="op">==</span> pl.col(<span class="st">&#39;month&#39;</span>).shift(<span class="op">-</span><span class="dv">1</span>)) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;month&#39;</span>).shift(<span class="dv">1</span>) <span class="op">!=</span> <span class="st">&#39;n/a&#39;</span>))</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    .then(pl.col(<span class="st">&#39;month&#39;</span>).shift(<span class="dv">1</span>))</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    .when((pl.col(<span class="st">&#39;month&#39;</span>) <span class="op">==</span> <span class="st">&#39;n/a&#39;</span>) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;airport_code&#39;</span>) <span class="op">&lt;</span> pl.col(<span class="st">&#39;airport_code&#39;</span>).shift(<span class="dv">1</span>)) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;month&#39;</span>).shift(<span class="op">-</span><span class="dv">1</span>) <span class="op">!=</span> <span class="st">&#39;n/a&#39;</span>))</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    .then(pl.col(<span class="st">&#39;month&#39;</span>).shift(<span class="op">-</span><span class="dv">1</span>))</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    .when((pl.col(<span class="st">&#39;month&#39;</span>) <span class="op">==</span> <span class="st">&#39;n/a&#39;</span>) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;airport_code&#39;</span>) <span class="op">&gt;</span> pl.col(<span class="st">&#39;airport_code&#39;</span>).shift(<span class="dv">1</span>)) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;month&#39;</span>).shift(<span class="dv">1</span>) <span class="op">!=</span> <span class="st">&#39;n/a&#39;</span>))</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    .then(pl.col(<span class="st">&#39;month&#39;</span>).shift(<span class="dv">1</span>))</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    .when((pl.col(<span class="st">&#39;month&#39;</span>) <span class="op">==</span> <span class="st">&#39;n/a&#39;</span>) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;airport_code&#39;</span>) <span class="op">&lt;</span> pl.col(<span class="st">&#39;airport_code&#39;</span>).shift(<span class="op">-</span><span class="dv">1</span>)) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;month&#39;</span>).shift(<span class="op">-</span><span class="dv">1</span>) <span class="op">!=</span> <span class="st">&#39;n/a&#39;</span>))</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    .then(pl.col(<span class="st">&#39;month&#39;</span>).shift(<span class="op">-</span><span class="dv">1</span>))</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    .otherwise(pl.col(<span class="st">&#39;month&#39;</span>))</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    .alias(<span class="st">&#39;month&#39;</span>)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixing airport names:</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>airports <span class="op">=</span> flights_json.select([<span class="st">&#39;airport_code&#39;</span>, <span class="st">&#39;airport_name&#39;</span>]).<span class="bu">filter</span>((pl.col(<span class="st">&#39;airport_name&#39;</span>) <span class="op">!=</span> <span class="st">&quot;&quot;</span>)).unique().sort(by<span class="op">=</span><span class="st">&#39;airport_code&#39;</span>, descending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>airport_dic <span class="op">=</span> <span class="bu">dict</span>(<span class="bu">zip</span>(airports[<span class="st">&#39;airport_code&#39;</span>], airports[<span class="st">&#39;airport_name&#39;</span>]))</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(airport_name<span class="op">=</span>pl.col(<span class="st">&#39;airport_code&#39;</span>).replace(airport_dic))</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixing minutes</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;minutes_delayed_nas&#39;</span>).fill_null(<span class="op">-</span><span class="fl">999.0</span>),</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;minutes_delayed_carrier&#39;</span>).fill_null(<span class="op">-</span><span class="fl">999.0</span>)</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>adj <span class="op">=</span> pl.col(<span class="st">&#39;minutes_delayed_total&#39;</span>) <span class="op">-</span> pl.col(<span class="st">&#39;minutes_delayed_weather&#39;</span>) <span class="op">-</span> pl.col(<span class="st">&#39;minutes_delayed_security&#39;</span>) <span class="op">-</span> pl.col(<span class="st">&#39;minutes_delayed_late_aircraft&#39;</span>)</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    pl.when((pl.col(<span class="st">&#39;minutes_delayed_carrier&#39;</span>) <span class="op">&lt;</span> <span class="dv">0</span>) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;minutes_delayed_nas&#39;</span>) <span class="op">&gt;</span> <span class="dv">0</span>))</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>    .then(adj <span class="op">-</span> pl.col(<span class="st">&#39;minutes_delayed_nas&#39;</span>))</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>    .when((pl.col(<span class="st">&#39;minutes_delayed_carrier&#39;</span>) <span class="op">&lt;</span> <span class="dv">0</span>) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;minutes_delayed_nas&#39;</span>) <span class="op">&lt;</span> <span class="dv">0</span>))</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>    .then((adj) <span class="op">/</span> <span class="dv">2</span>)</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    .otherwise(pl.col(<span class="st">&#39;minutes_delayed_carrier&#39;</span>))</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>    .alias(<span class="st">&#39;minutes_delayed_carrier&#39;</span>)</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    pl.when(pl.col(<span class="st">&#39;minutes_delayed_nas&#39;</span>) <span class="op">&lt;</span> <span class="dv">0</span>)</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    .then(adj <span class="op">-</span> pl.col(<span class="st">&#39;minutes_delayed_carrier&#39;</span>))</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>    .otherwise(pl.col(<span class="st">&#39;minutes_delayed_nas&#39;</span>))</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>    .alias(<span class="st">&#39;minutes_delayed_nas&#39;</span>)</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixing number of delays</span></span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>    num_of_delays_carrier<span class="op">=</span>pl.col(<span class="st">&#39;num_of_delays_carrier&#39;</span>).replace(<span class="st">&#39;1500+&#39;</span>, <span class="st">&#39;-999&#39;</span>)</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;num_of_delays_carrier&#39;</span>).cast(pl.Int64).alias(<span class="st">&#39;num_of_delays_carrier&#39;</span>)</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>adj_num <span class="op">=</span> pl.col(<span class="st">&#39;num_of_delays_total&#39;</span>) <span class="op">-</span> pl.col(<span class="st">&#39;num_of_delays_weather&#39;</span>) <span class="op">-</span> pl.col(<span class="st">&#39;num_of_delays_security&#39;</span>) <span class="op">-</span> pl.col(<span class="st">&#39;num_of_delays_nas&#39;</span>)</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>    pl.when((pl.col(<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>) <span class="op">&lt;</span> <span class="dv">0</span>) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;num_of_delays_carrier&#39;</span>) <span class="op">&gt;</span> <span class="dv">0</span>))</span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>    .then(adj_num <span class="op">-</span> pl.col(<span class="st">&#39;num_of_delays_carrier&#39;</span>))</span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>    .when((pl.col(<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>) <span class="op">&lt;</span> <span class="dv">0</span>) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;num_of_delays_carrier&#39;</span>) <span class="op">&lt;</span> <span class="dv">0</span>))</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>    .then(((adj_num) <span class="op">/</span> <span class="dv">2</span>).cast(pl.Int64))</span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>    .otherwise(pl.col(<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>))</span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>    .alias(<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>)</span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>cur_mon <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(col_sz):</span>
-<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>    code <span class="op">=</span> flights_json[<span class="st">&#39;airport_code&#39;</span>][i]</span>
-<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> i <span class="op">==</span> col_sz <span class="op">-</span> <span class="dv">1</span>:</span>
-<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>        months[i] <span class="op">=</span> mon_dic[cur_mon]</span>
-<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> flights_json[<span class="st">&#39;airport_code&#39;</span>][i] <span class="op">&gt;</span> flights_json[<span class="st">&#39;airport_code&#39;</span>][i <span class="op">+</span> <span class="dv">1</span>]:</span>
-<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>        months[i] <span class="op">=</span> mon_dic[cur_mon]</span>
-<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>        cur_mon <span class="op">=</span> <span class="dv">0</span> <span class="cf">if</span> cur_mon <span class="op">==</span> <span class="dv">11</span> <span class="cf">else</span> cur_mon <span class="op">+</span> <span class="dv">1</span></span>
-<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>        months[i] <span class="op">=</span> mon_dic[cur_mon]</span>
-<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(pl.Series(<span class="st">&#39;month&#39;</span>, months))</span>
-<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>car_delay <span class="op">=</span> flights_json[<span class="st">&#39;num_of_delays_carrier&#39;</span>].to_list()</span>
-<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>air_delay <span class="op">=</span> flights_json[<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>].to_list()</span>
-<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(flights_json[<span class="st">&#39;num_of_delays_total&#39;</span>])):</span>
-<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (car_delay[i] <span class="op">==</span> <span class="st">&#39;1500+&#39;</span>) <span class="op">&amp;</span> (air_delay[i] <span class="op">==</span> <span class="op">-</span><span class="fl">999.0</span>):</span>
-<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>        val <span class="op">=</span> flights_json[<span class="st">&#39;num_of_delays_total&#39;</span>][i] <span class="op">-</span> (</span>
-<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a>            flights_json[<span class="st">&#39;num_of_delays_weather&#39;</span>][i]</span>
-<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;num_of_delays_security&#39;</span>][i]</span>
-<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;num_of_delays_nas&#39;</span>][i]</span>
-<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>        <span class="co"># val2 = val - (val // 2)</span></span>
-<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>        val2 <span class="op">=</span> <span class="bu">int</span>(flights_json.<span class="bu">filter</span>(pl.col(<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>) <span class="op">&gt;=</span> <span class="dv">0</span>).select(pl.col(<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>).mean().alias(<span class="st">&#39;delay_mean&#39;</span>))[<span class="st">&#39;delay_mean&#39;</span>][<span class="dv">0</span>])</span>
-<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a>        <span class="co"># val2 should be the mean of that column</span></span>
-<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> val <span class="op">-</span> val2 <span class="op">&lt;=</span> <span class="dv">1500</span>:</span>
-<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>            car_delay[i] <span class="op">=</span> <span class="dv">1501</span></span>
-<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>            air_delay[i] <span class="op">=</span> val <span class="op">-</span> <span class="dv">1501</span></span>
-<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a>            car_delay[i] <span class="op">=</span> val <span class="op">-</span> val2</span>
-<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a>            air_delay[i] <span class="op">=</span> val2</span>
-<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> air_delay[i] <span class="op">==</span> <span class="op">-</span><span class="fl">999.0</span>:</span>
-<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>        val <span class="op">=</span> flights_json[<span class="st">&#39;num_of_delays_total&#39;</span>][i] <span class="op">-</span> (</span>
-<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>            flights_json[<span class="st">&#39;num_of_delays_weather&#39;</span>][i]</span>
-<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;num_of_delays_security&#39;</span>][i]</span>
-<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;num_of_delays_nas&#39;</span>][i]</span>
-<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> <span class="bu">int</span>(flights_json[<span class="st">&#39;num_of_delays_carrier&#39;</span>][i])</span>
-<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>        air_delay[i] <span class="op">=</span> val</span>
-<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> car_delay[i] <span class="op">==</span> <span class="st">&#39;1500+&#39;</span>:</span>
-<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a>        val <span class="op">=</span> flights_json[<span class="st">&#39;num_of_delays_total&#39;</span>][i] <span class="op">-</span> (</span>
-<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>            flights_json[<span class="st">&#39;num_of_delays_weather&#39;</span>][i]</span>
-<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;num_of_delays_security&#39;</span>][i]</span>
-<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;num_of_delays_nas&#39;</span>][i]</span>
-<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> flights_json[<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>][i]</span>
-<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a>        car_delay[i] <span class="op">=</span> val</span>
-<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a>car_delay_flt <span class="op">=</span> [<span class="bu">float</span>(x) <span class="cf">for</span> x <span class="kw">in</span> car_delay]</span>
-<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(pl.Series(<span class="st">&#39;num_of_delays_carrier&#39;</span>, car_delay_flt, dtype<span class="op">=</span>pl.Float64), pl.Series(<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>, air_delay, dtype<span class="op">=</span>pl.Float64))</span>
-<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a><span class="co"># print(flights_json.tail(5))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>    pl.when((pl.col(<span class="st">&#39;num_of_delays_carrier&#39;</span>) <span class="op">&lt;</span> <span class="dv">0</span>) <span class="op">&amp;</span> (pl.col(<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>) <span class="op">&gt;</span> <span class="dv">0</span>))</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>    .then(adj_num <span class="op">-</span> pl.col(<span class="st">&#39;num_of_delays_late_aircraft&#39;</span>))</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>    .otherwise(pl.col(<span class="st">&#39;num_of_delays_carrier&#39;</span>))</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>    .alias(<span class="st">&#39;num_of_delays_carrier&#39;</span>)</span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f&quot;Data has been cleaned!&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Data has been cleaned!</code></pre>
+</div>
 </div>
 <section id="question-1" class="level2">
 <h2 class="anchored" data-anchor-id="question-1">QUESTION 1</h2>
 <p><strong>What is the best month to fly if you want to avoid delays of any length?</strong> Describe the metric you chose and why you chose it to calculate your answer. Include one chart to help support your answer, with the x-axis ordered by month.</p>
 <p>The best month to fly to avoid delays of any length would be September since its delay ratio is the lowest. Using the ratio is more representative since it reflects the likelyhood of having a delayed flight rather than few delays since there are fewer flights.</p>
-<div id="225f7775" class="cell" data-execution_count="4">
+<div id="7881beeb" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># delays / flights</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    (pl.col(<span class="st">&#39;num_of_delays_total&#39;</span>) <span class="op">/</span> pl.col(<span class="st">&#39;num_of_flights_total&#39;</span>)).alias(<span class="st">&#39;delay_ratio&#39;</span>),</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    ((pl.col(<span class="st">&#39;minutes_delayed_total&#39;</span>) <span class="op">/</span> pl.col(<span class="st">&#39;num_of_delays_total&#39;</span>)) <span class="op">/</span> <span class="dv">60</span>).alias(<span class="st">&#39;average_delay_time_hours&#39;</span>)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    (pl.col(<span class="st">&#39;delay_ratio&#39;</span>) <span class="op">*</span> pl.col(<span class="st">&#39;average_delay_time_hours&#39;</span>) <span class="op">*</span> <span class="dv">60</span>).alias(<span class="st">&#39;expected_delay_minutes&#39;</span>)</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># delays / flights</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    (pl.col(<span class="st">&#39;num_of_delays_total&#39;</span>) <span class="op">/</span> pl.col(<span class="st">&#39;num_of_flights_total&#39;</span>)).alias(<span class="st">&#39;delay_ratio&#39;</span>),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    ((pl.col(<span class="st">&#39;minutes_delayed_total&#39;</span>) <span class="op">/</span> pl.col(<span class="st">&#39;num_of_delays_total&#39;</span>)) <span class="op">/</span> <span class="dv">60</span>).alias(<span class="st">&#39;average_delay_time_hours&#39;</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>flights_json <span class="op">=</span> flights_json.with_columns(</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    (pl.col(<span class="st">&#39;delay_ratio&#39;</span>) <span class="op">*</span> pl.col(<span class="st">&#39;average_delay_time_hours&#39;</span>) <span class="op">*</span> <span class="dv">60</span>).alias(<span class="st">&#39;expected_delay_minutes&#39;</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div id="8ffde62d" class="cell" data-execution_count="5">
+<div id="764bc667" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>delays <span class="op">=</span> flights_json.group_by(<span class="st">&#39;month&#39;</span>).agg(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    [pl.col(<span class="st">&#39;num_of_delays_total&#39;</span>).<span class="bu">sum</span>(),</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;num_of_flights_total&#39;</span>).<span class="bu">sum</span>(),</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;delay_ratio&#39;</span>).mean(),</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;average_delay_time_hours&#39;</span>).mean(),</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;expected_delay_minutes&#39;</span>).mean()</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>delays <span class="op">=</span> delays.sort(<span class="st">&#39;delay_ratio&#39;</span>, descending<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>delays</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>delays <span class="op">=</span> flights_json.group_by(<span class="st">&#39;month&#39;</span>).agg(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    [pl.col(<span class="st">&#39;num_of_delays_total&#39;</span>).<span class="bu">sum</span>(),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;num_of_flights_total&#39;</span>).<span class="bu">sum</span>(),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;delay_ratio&#39;</span>).mean(),</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;average_delay_time_hours&#39;</span>).mean(),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&#39;expected_delay_minutes&#39;</span>).mean()</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>month_order <span class="op">=</span> {</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;January&quot;</span>: <span class="dv">1</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;February&quot;</span>: <span class="dv">2</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;March&quot;</span>: <span class="dv">3</span>,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;April&quot;</span>: <span class="dv">4</span>,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;May&quot;</span>: <span class="dv">5</span>,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;June&quot;</span>: <span class="dv">6</span>,</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;July&quot;</span>: <span class="dv">7</span>,</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;August&quot;</span>: <span class="dv">8</span>,</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;September&quot;</span>: <span class="dv">9</span>,</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;October&quot;</span>: <span class="dv">10</span>,</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;November&quot;</span>: <span class="dv">11</span>,</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;December&quot;</span>: <span class="dv">12</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>delays <span class="op">=</span> delays.with_columns(</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    pl.col(<span class="st">&quot;month&quot;</span>).replace_strict(month_order).alias(<span class="st">&quot;month_num&quot;</span>)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>).sort(<span class="st">&quot;month_num&quot;</span>)</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>delays</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div><style>
@@ -2410,7 +2379,7 @@ text-align: right;
 white-space: pre-wrap;
 }
 </style>
-<small>shape: (12, 6)</small>
+<small>shape: (12, 7)</small>
 <table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
 <thead>
 <tr class="header">
@@ -2420,6 +2389,7 @@ white-space: pre-wrap;
 <th data-quarto-table-cell-role="th">delay_ratio</th>
 <th data-quarto-table-cell-role="th">average_delay_time_hours</th>
 <th data-quarto-table-cell-role="th">expected_delay_minutes</th>
+<th data-quarto-table-cell-role="th">month_num</th>
 </tr>
 <tr class="even">
 <th>str</th>
@@ -2428,64 +2398,36 @@ white-space: pre-wrap;
 <th>f64</th>
 <th>f64</th>
 <th>f64</th>
+<th>i64</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>&quot;December&quot;</td>
-<td>321847</td>
-<td>1245198</td>
-<td>0.255249</td>
-<td>0.98622</td>
-<td>15.373287</td>
-</tr>
-<tr class="even">
-<td>&quot;June&quot;</td>
-<td>323759</td>
-<td>1327016</td>
-<td>0.23953</td>
-<td>1.015908</td>
-<td>14.882115</td>
-</tr>
-<tr class="odd">
-<td>&quot;July&quot;</td>
-<td>319960</td>
-<td>1371741</td>
-<td>0.225045</td>
-<td>1.014752</td>
-<td>14.000382</td>
-</tr>
-<tr class="even">
 <td>&quot;January&quot;</td>
 <td>274573</td>
 <td>1239325</td>
 <td>0.216022</td>
 <td>0.957891</td>
 <td>12.745041</td>
+<td>1</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>&quot;February&quot;</td>
 <td>253669</td>
 <td>1146576</td>
 <td>0.21565</td>
 <td>0.942069</td>
 <td>12.482161</td>
-</tr>
-<tr class="even">
-<td>…</td>
-<td>…</td>
-<td>…</td>
-<td>…</td>
-<td>…</td>
-<td>…</td>
+<td>2</td>
 </tr>
 <tr class="odd">
-<td>&quot;May&quot;</td>
-<td>248971</td>
-<td>1306256</td>
-<td>0.186128</td>
-<td>0.93161</td>
-<td>10.615287</td>
+<td>&quot;March&quot;</td>
+<td>271881</td>
+<td>1308035</td>
+<td>0.199513</td>
+<td>0.931681</td>
+<td>11.368565</td>
+<td>3</td>
 </tr>
 <tr class="even">
 <td>&quot;April&quot;</td>
@@ -2494,6 +2436,43 @@ white-space: pre-wrap;
 <td>0.179019</td>
 <td>0.913254</td>
 <td>10.038105</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td>&quot;May&quot;</td>
+<td>248971</td>
+<td>1306256</td>
+<td>0.186128</td>
+<td>0.93161</td>
+<td>10.615287</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>&quot;August&quot;</td>
+<td>285514</td>
+<td>1367453</td>
+<td>0.200899</td>
+<td>0.960209</td>
+<td>11.770218</td>
+<td>8</td>
+</tr>
+<tr class="even">
+<td>&quot;September&quot;</td>
+<td>206223</td>
+<td>1253152</td>
+<td>0.158473</td>
+<td>0.89078</td>
+<td>8.677619</td>
+<td>9</td>
 </tr>
 <tr class="odd">
 <td>&quot;October&quot;</td>
@@ -2502,6 +2481,7 @@ white-space: pre-wrap;
 <td>0.173353</td>
 <td>0.879128</td>
 <td>9.348338</td>
+<td>10</td>
 </tr>
 <tr class="even">
 <td>&quot;November&quot;</td>
@@ -2510,49 +2490,51 @@ white-space: pre-wrap;
 <td>0.16104</td>
 <td>0.901603</td>
 <td>8.866958</td>
+<td>11</td>
 </tr>
 <tr class="odd">
-<td>&quot;September&quot;</td>
-<td>206223</td>
-<td>1253152</td>
-<td>0.158473</td>
-<td>0.89078</td>
-<td>8.677619</td>
+<td>&quot;December&quot;</td>
+<td>321847</td>
+<td>1245198</td>
+<td>0.255249</td>
+<td>0.98622</td>
+<td>15.373287</td>
+<td>12</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 </div>
-<div id="dcc1eacb" class="cell" data-execution_count="6">
+<div id="5c0f3e15" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>delay_bar <span class="op">=</span> (</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    ggplot(data<span class="op">=</span>delays)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> geom_bar(mapping <span class="op">=</span> aes(x <span class="op">=</span> <span class="st">&#39;month&#39;</span>, y <span class="op">=</span> <span class="st">&#39;delay_ratio&#39;</span>, fill<span class="op">=</span><span class="st">&#39;month&#39;</span>, color<span class="op">=</span><span class="st">&#39;month&#39;</span>), stat<span class="op">=</span><span class="st">&#39;identity&#39;</span>)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> guides(color<span class="op">=</span><span class="st">&quot;none&quot;</span>)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> labs(</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>          title<span class="op">=</span><span class="st">&quot;Liklehood of delays by month.&quot;</span>,</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>          subtitle<span class="op">=</span><span class="st">&quot;Shown for each month.&quot;</span>,</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>          x<span class="op">=</span><span class="st">&quot;Month&quot;</span>,</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>          y<span class="op">=</span><span class="st">&quot;Delay Liklehood&quot;</span>,</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>          fill<span class="op">=</span><span class="st">&#39;Month&#39;</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> theme(</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>            panel_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">&#39;gray&#39;</span>),</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>            plot_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">&#39;gray&#39;</span>),</span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>            panel_grid_major<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">&#39;gray&#39;</span>),</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>            legend_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">&#39;gray&#39;</span>),</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>            axis_text<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>),</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>            axis_title<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>),</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>            plot_title<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>),</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>            plot_subtitle<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>),</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>            legend_text<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>),</span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>            legend_title<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>)</span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>delay_bar</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>delay_bar <span class="op">=</span> (</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    ggplot(data<span class="op">=</span>delays)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> geom_bar(mapping <span class="op">=</span> aes(x <span class="op">=</span> <span class="st">&#39;month&#39;</span>, y <span class="op">=</span> <span class="st">&#39;delay_ratio&#39;</span>, fill<span class="op">=</span><span class="st">&#39;month&#39;</span>, color<span class="op">=</span><span class="st">&#39;month&#39;</span>), stat<span class="op">=</span><span class="st">&#39;identity&#39;</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> guides(color<span class="op">=</span><span class="st">&quot;none&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> labs(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>          title<span class="op">=</span><span class="st">&quot;Liklehood of delays by month.&quot;</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>          subtitle<span class="op">=</span><span class="st">&quot;Shown for each month.&quot;</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>          x<span class="op">=</span><span class="st">&quot;Month&quot;</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>          y<span class="op">=</span><span class="st">&quot;Delay Liklehood&quot;</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>          fill<span class="op">=</span><span class="st">&#39;Month&#39;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> theme(</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            panel_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">&#39;gray&#39;</span>),</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            plot_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">&#39;gray&#39;</span>),</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>            panel_grid_major<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">&#39;gray&#39;</span>),</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>            legend_background<span class="op">=</span>element_rect(fill<span class="op">=</span><span class="st">&#39;gray&#39;</span>),</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>            axis_text<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>),</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>            axis_title<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>),</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>            plot_title<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>),</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>            plot_subtitle<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>),</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>            legend_text<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>),</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>            legend_title<span class="op">=</span>element_text(color<span class="op">=</span><span class="st">&#39;white&#39;</span>)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>delay_bar</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display" data-execution_count="6">
 
@@ -2563,7 +2545,7 @@ white-space: pre-wrap;
 //# sourceMappingURL=lets-plot.js.map</script>
    
    
-          <div id="iy5zKy"></div>
+          <div id="mIdtEE"></div>
    <script type="text/javascript" data-lets-plot-script="plot">
    
    (function() {
@@ -2588,15 +2570,15 @@ white-space: pre-wrap;
        };
    }
    
-   const containerDiv = document.getElementById("iy5zKy");
+   const containerDiv = document.getElementById("mIdtEE");
    let fig = null;
    
    function renderPlot() {
        if (fig === null) {
            const plotSpec = {
 "data":{
-"month":["December","June","July","January","February","August","March","May","April","October","November","September"],
-"delay_ratio":[0.2552489202421073,0.2395299717178041,0.225044851906852,0.21602187774779344,0.21564973692523465,0.20089888692502975,0.19951330474344917,0.1861277913652569,0.17901876502001474,0.17335321482452096,0.16104031993743415,0.15847327232945874]
+"month":["January","February","March","April","May","June","July","August","September","October","November","December"],
+"delay_ratio":[0.21602187774779344,0.21564973692523465,0.19951330474344917,0.17901876502001474,0.1861277913652569,0.2395299717178041,0.225044851906852,0.20089888692502975,0.15847327232945874,0.17335321482452096,0.16104031993743415,0.2552489202421073]
 },
 "mapping":{
 },
@@ -2619,6 +2601,9 @@ white-space: pre-wrap;
 },{
 "type":"float",
 "column":"expected_delay_minutes"
+},{
+"type":"int",
+"column":"month_num"
 }]
 },
 "guides":{
