@@ -26,7 +26,6 @@ execute:
 ---
 
 ```{python}
-import pandas as pd
 import polars as pl
 import numpy as np
 from lets_plot import *
@@ -52,44 +51,58 @@ Many of the names were manually renamed, other names were taken from the column 
 # Include and execute your code here
 # Fix UTF encoding
 # Create a readme/data.md using the og column names
+# df_clean = df.rename({
+#   df.columns[1]: "seen",
+#   df.columns[2]: "fan",
+#   df.columns[3]: "seen_epi_i",
+#   df.columns[4]: "seen_epi_ii",
+#   df.columns[5]: "seen_epi_iii",
+#   df.columns[6]: "seen_epi_iv",
+#   df.columns[7]: "seen_epi_v",
+#   df.columns[8]: "seen_epi_vi",
+#   df.columns[9]: "rank_epi_i",
+#   df.columns[10]: "rank_epi_ii",
+#   df.columns[11]: "rank_epi_iii",
+#   df.columns[12]: "rank_epi_iv",
+#   df.columns[13]: "rank_epi_v",
+#   df.columns[14]: "rank_epi_vi",
+#   df.columns[15]: df[df.columns[15]][0].lower().replace(' ', '_'),
+#   df.columns[16]: df[df.columns[16]][0].lower().replace(' ', '_'),
+#   df.columns[17]: df[df.columns[17]][0].lower().replace(' ', '_'),
+#   df.columns[18]: df[df.columns[18]][0].lower().replace(' ', '_'),
+#   df.columns[19]: df[df.columns[19]][0].lower().replace(' ', '_'),
+#   df.columns[20]: df[df.columns[20]][0].lower().replace(' ', '_'),
+#   df.columns[21]: df[df.columns[21]][0].lower().replace(' ', '_'),
+#   df.columns[22]: df[df.columns[22]][0].lower().replace(' ', '_'),
+#   df.columns[23]: df[df.columns[23]][0].lower().replace(' ', '_'),
+#   df.columns[24]: df[df.columns[24]][0].lower().replace(' ', '_'),
+#   df.columns[25]: df[df.columns[25]][0].lower().replace(' ', '_'),
+#   df.columns[26]: df[df.columns[26]][0].lower().replace(' ', '_'),
+#   df.columns[27]: df[df.columns[27]][0].lower().replace(' ', '_'),
+#   df.columns[28]: df[df.columns[28]][0].lower().replace(' ', '_'),
+#   df.columns[29]: "shot_first",
+#   df.columns[30]: "ex_uni",
+#   df.columns[31]: "fan_ex_uni",
+#   df.columns[32]: "fan_star_trek",
+#   df.columns[33]: df.columns[33].lower().replace(' ', '_'),
+#   df.columns[34]: df.columns[34].lower().replace(' ', '_'),
+#   df.columns[35]: df.columns[35].lower().replace(' ', '_'),
+#   df.columns[36]: df.columns[36].lower().replace(' ', '_'),
+#   df.columns[37]: "location"
+# })
+
 df_clean = df.rename({
-  df.columns[1]: "seen",
-  df.columns[2]: "fan",
-  df.columns[3]: "seen_epi_i",
-  df.columns[4]: "seen_epi_ii",
-  df.columns[5]: "seen_epi_iii",
-  df.columns[6]: "seen_epi_iv",
-  df.columns[7]: "seen_epi_v",
-  df.columns[8]: "seen_epi_vi",
-  df.columns[9]: "rank_epi_i",
-  df.columns[10]: "rank_epi_ii",
-  df.columns[11]: "rank_epi_iii",
-  df.columns[12]: "rank_epi_iv",
-  df.columns[13]: "rank_epi_v",
-  df.columns[14]: "rank_epi_vi",
-  df.columns[15]: df[df.columns[15]][0].lower().replace(' ', '_'),
-  df.columns[16]: df[df.columns[16]][0].lower().replace(' ', '_'),
-  df.columns[17]: df[df.columns[17]][0].lower().replace(' ', '_'),
-  df.columns[18]: df[df.columns[18]][0].lower().replace(' ', '_'),
-  df.columns[19]: df[df.columns[19]][0].lower().replace(' ', '_'),
-  df.columns[20]: df[df.columns[20]][0].lower().replace(' ', '_'),
-  df.columns[21]: df[df.columns[21]][0].lower().replace(' ', '_'),
-  df.columns[22]: df[df.columns[22]][0].lower().replace(' ', '_'),
-  df.columns[23]: df[df.columns[23]][0].lower().replace(' ', '_'),
-  df.columns[24]: df[df.columns[24]][0].lower().replace(' ', '_'),
-  df.columns[25]: df[df.columns[25]][0].lower().replace(' ', '_'),
-  df.columns[26]: df[df.columns[26]][0].lower().replace(' ', '_'),
-  df.columns[27]: df[df.columns[27]][0].lower().replace(' ', '_'),
-  df.columns[28]: df[df.columns[28]][0].lower().replace(' ', '_'),
-  df.columns[29]: "shot_first",
-  df.columns[30]: "ex_uni",
-  df.columns[31]: "fan_ex_uni",
-  df.columns[32]: "fan_star_trek",
-  df.columns[33]: df.columns[33].lower().replace(' ', '_'),
-  df.columns[34]: df.columns[34].lower().replace(' ', '_'),
-  df.columns[35]: df.columns[35].lower().replace(' ', '_'),
-  df.columns[36]: df.columns[36].lower().replace(' ', '_'),
-  df.columns[37]: "location"
+    df.columns[1]: "seen",
+    df.columns[2]: "fan",
+    **{df.columns[i]: f"seen_epi_{['i', 'ii', 'iii', 'iv', 'v', 'vi'][i - 3]}" for i in range(3, 9)},
+    **{df.columns[i]: f"rank_epi_{['i', 'ii', 'iii', 'iv', 'v', 'vi'][i - 9]}" for i in range(9, 15)},
+    **{df.columns[i]: df[df.columns[i]][0].lower().replace(' ', '_') for i in range(15, 29)},
+    df.columns[29]: "shot_first",
+    df.columns[30]: "ex_uni",
+    df.columns[31]: "fan_ex_uni",
+    df.columns[32]: "fan_star_trek",
+    **{df.columns[i]: df.columns[i].lower().replace(' ', '_') for i in range(33, 37)},
+    df.columns[37]: "location"
 })
 
 df_clean = df_clean[1:]
@@ -107,13 +120,9 @@ Gathering the shape of the seen movies, the count is 835.
 # Include and execute your code here
 seen_cols = ["seen_epi_i", "seen_epi_ii", "seen_epi_iii", "seen_epi_iv", "seen_epi_v", "seen_epi_vi",]
 
+# Checks for each row where there is at least one non-null value (think an OR operation on each column per row)
 df_seen = df_clean.filter(
-  (pl.col(df_clean.columns[3]).is_not_null())
-  | (pl.col(df_clean.columns[4]).is_not_null())
-  | (pl.col(df_clean.columns[5]).is_not_null())
-  | (pl.col(df_clean.columns[6]).is_not_null())
-  | (pl.col(df_clean.columns[7]).is_not_null())
-  | (pl.col(df_clean.columns[8]).is_not_null())
+  pl.any_horizontal([pl.col(df_clean.columns[i]).is_not_null() for i in range(3, 9)])
 ).select(seen_cols)
 
 movies = ["The Phantom Menace", "Attack of the Clones", "Revenge of the Sith", "A New Hope", "The Empire Strikes Back", "Return of the Jedi"]
@@ -126,13 +135,9 @@ df_percs = df_percs.with_columns(
 
 rank_cols = ["rank_epi_i", "rank_epi_ii", "rank_epi_iii", "rank_epi_iv", "rank_epi_v", "rank_epi_vi",]
 
+# Checks for each row where all the columns are not null (think an AND operation on each column per row.)
 df_rank = df_clean.filter(
-  (pl.col(df_clean.columns[3]).is_not_null())
-  & (pl.col(df_clean.columns[4]).is_not_null())
-  & (pl.col(df_clean.columns[5]).is_not_null())
-  & (pl.col(df_clean.columns[6]).is_not_null())
-  & (pl.col(df_clean.columns[7]).is_not_null())
-  & (pl.col(df_clean.columns[8]).is_not_null())
+  pl.all_horizontal([pl.col(df_clean.columns[i]).is_not_null() for i in range(3, 9)])
 ).select(rank_cols)
 
 # Episode 3 has 1 missing rank (when compared to the other movies the rank option left is 6)

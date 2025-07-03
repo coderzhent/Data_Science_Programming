@@ -73,69 +73,57 @@ df_clean = df_clean[1:]
     a. Create your target (also known as “y” or “label”) column based on the new income range column  
     a. One-hot encode all remaining categorical columns 
 
-_type your write-up and analysis here_
+The "y" or "label" column is the encoded income range and the "X" group is everything except for the income and respondent ID columns. Some columns were manually encoded like age and rankings. The education and income were also manually encoded, but it was on a linear scale, which may introduce issues on accurately representing the data. The rest were encoded using One Hot encoding.
 
 ```{python}
 # Include and execute your code here
 
 df_clean = df_clean.with_columns(
-  pl.when((pl.col('age') == "> 60"))
-  .then(4)
-  .when((pl.col('age') == "45-60"))
-  .then(3)
-  .when((pl.col('age') == "30-44"))
-  .then(2)
-  .when((pl.col('age') == "18-29"))
-  .then(1)
-  .otherwise(0)
-  .alias("age_num")
+  pl.col("age").replace({
+    "> 60": 4,
+    "45-60": 3,
+    "30-44": 2,
+    "18-29": 1,
+  }, default=0).alias("age_num")
 )
 
 df_clean = df_clean.with_columns(
-  pl.when((pl.col('education') == "Graduate degree"))
-  .then(5)
-  .when((pl.col('education') == "Bachelor degree"))
-  .then(4)
-  .when((pl.col('education') == "Some college or Associate degree"))
-  .then(3)
-  .when((pl.col('education') == "High school degree"))
-  .then(2)
-  .when((pl.col('education') == "Less than high school degree"))
-  .then(1)
-  .otherwise(0)
-  .alias("education_num")
+  pl.col(df_clean.columns[i]).replace({
+    "Very favorably": 6,
+    "Somewhat favorably": 5,
+    "Neither favorably nor unfavorably (neutral)": 4,
+    "Somewhat unfavorably": 3,
+    "Very unfavorably": 2,
+    "Unfamiliar (N/A)": 1
+  }, default=0).alias(df_clean.columns[i]) for i in range(15, 29)
 )
 
 df_clean = df_clean.with_columns(
-  pl.when((pl.col('household_income') == '$150,000+'))
-  .then(5)
-  .when((pl.col('household_income') == '$100,000 - $149,999'))
-  .then(4)
-  .when((pl.col('household_income') == '$50,000 - $99,999'))
-  .then(3)
-  .when((pl.col('household_income') == '$25,000 - $49,999'))
-  .then(2)
-  .when((pl.col('household_income') == '$0 - $24,999'))
-  .then(1)
-  .otherwise(0)
-  .alias("income")
+  pl.when((pl.col(df_clean.columns[i]).is_null()))
+  .then(pl.lit("no"))
+  .otherwise(pl.lit("yes"))
+  .alias(df_clean.columns[i]) for i in range(3, 9)
+)
+
+# It may be worthwhile to just one-hot encode these two groups since they are ordinal and the numeric representation implies the distance between these values as being equal and that is not the case.
+df_clean = df_clean.with_columns(
+  pl.col('education').replace({
+    "Graduate degree": 5,
+    "Bachelor degree": 4,
+    "Some college or Associate degree": 3,
+    "High school degree": 2,
+    "Less than high school degree": 1
+  }, default=0).alias("education_num")
 )
 
 df_clean = df_clean.with_columns(
-  pl.when((pl.col(df_clean.columns[i]) == "Very favorably"))
-  .then(6)
-  .when((pl.col(df_clean.columns[i]) == "Somewhat favorably"))
-  .then(5)
-  .when((pl.col(df_clean.columns[i]) == "Neither favorably nor unfavorably (neutral)"))
-  .then(4)
-  .when((pl.col(df_clean.columns[i]) == "Somewhat unfavorably"))
-  .then(3)
-  .when((pl.col(df_clean.columns[i]) == "Very unfavorably"))
-  .then(2)
-  .when((pl.col(df_clean.columns[i]) == "Unfamiliar (N/A)"))
-  .then(1)
-  .otherwise(0)
-  .alias(df_clean.columns[i]) for i in range(15, 29)
+  pl.col('household_income').replace({
+    "$150,000+": 5,
+    "$100,000 - $149,999": 4,
+    "$50,000 - $99,999": 3,
+    "$25,000 - $49,999": 2,
+    "$0 - $24,999": 1
+  }, default=0).alias("income")
 )
 
 cat_cols = ['rank_epi_i', 'rank_epi_ii', 'rank_epi_iii', 'rank_epi_iv', 'rank_epi_v', 'rank_epi_vi', 'seen', 'fan', 'seen_epi_i', 'seen_epi_ii', 'seen_epi_iii', 'seen_epi_iv', 'seen_epi_v', 'seen_epi_vi', 'shot_first', 'ex_uni', 'fan_ex_uni', 'fan_star_trek', 'gender', 'location']
@@ -150,6 +138,8 @@ df_tot = pl.concat([df_clean.drop(cat_cols), enc_df], how='horizontal')
 
 X = df_tot.drop(['RespondentID', 'income'])
 y = df_tot.select('income')
+
+display(df_clean)
 ```
 
 
@@ -157,7 +147,7 @@ y = df_tot.select('income')
 
 1. __Build a machine learning model that predicts whether a person makes at least $50k. Describe your model and report the accuracy.__
 
-The classification of 3, 4, and 5 are all income ranges that are at least $50k. The model learned this very poorly. The accuracy based on the test is about 37%. This is very likely due to the significant amount of missing data present in the dataset. 
+The classification of 3, 4, and 5 are all income ranges that are at least $50k. The model learned this very poorly. The accuracy based on the test is about 39%. This is very likely due to the significant amount of missing data present in the dataset. 
 
 ```{python}
 # Include and execute your code here
