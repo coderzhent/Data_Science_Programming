@@ -203,7 +203,7 @@ rank_graph = (
     + geom_bar(mapping=aes(x='percentage', y='movie'), stat='identity', orientation='y', color="lightblue", fill="lightblue")
     + labs(
       title="What's the Best 'Star Wars' Movie?",
-      subtitle="Of 741 respondents who have seen all 6 films",
+      subtitle="Of 471 respondents who have seen all 6 films",
       x='',
       y=''
     )
