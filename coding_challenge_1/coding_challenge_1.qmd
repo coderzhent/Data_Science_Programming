@@ -1,0 +1,345 @@
+---
+title: "Client Report - Coding Challenge 1"
+subtitle: "Coding Challenge 1"
+author: "Ezekial Curran"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import polars as pl
+import numpy as np
+from lets_plot import *
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.metrics import (
+  classification_report, 
+  accuracy_score, 
+  recall_score, 
+  precision_score, 
+  f1_score
+  )
+# add the additional libraries you need to import for ML here
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+```{python}
+problem = pl.DataFrame({"problem": ['N/A', 15, 22, 45, 31, -999, 21, 2, 0, 0, 0, 'broken', 19, 19, 36, 27, 0, np.nan, 0, 33, 42, -999]}, schema={"problem": pl.String}, strict=False)
+```
+
+## QUESTION 1
+
+1. __Calculate the standard deviation after using `data cleansing techniques` and replacing missing values with the mean (2 decimal places):__
+
+_Cleaning the data involved replacing bad values with the average (18.35). The standard deviation was then found to be 13.51._
+
+```{python}
+# Include and execute your code here
+problem = problem.with_columns(
+  problem=pl.col('problem').replace(["broken", "N/A", "NaN"], -999)
+).cast(pl.Float64)
+
+avg = problem.filter(pl.col('problem') >= 0).mean().item()
+problem = problem.with_columns(
+  pl.when(pl.col('problem') < 0)
+  .then(avg)
+  .otherwise(pl.col('problem'))
+  .alias('problem')
+)
+
+stdev = np.std(np.array(problem['problem']))
+print(f"The average used to replace the missing values: {avg:.4}\nThe standard deviation found on the data: {stdev:.4}")
+```
+
+## Question 2
+
+2. __Use the pivot table, group by and/or aggregate functions to recreate the data frame of building counts for houses of 1 and 2 stories (in the rows of the table) and with a garage that fits 1,2,3 and 4 cars or less (the columns of the table) from the housing data. Display the recreated data table and display the results in a chart of your choice:__
+
+_The data was recreated using group_by and aggregate functions._
+
+```{python}
+# Include and execute your code here
+url = "https://github.com/byuidatascience/data4dwellings/raw/master/data-raw/dwellings_ml/dwellings_ml.csv"
+df = pl.read_csv(url)
+
+df = df.select(['stories', 'nocars'])
+df = df.filter(pl.col('nocars') <= 4)
+grouped = df.group_by('stories').agg(
+  zero=pl.col('nocars').filter(pl.col('nocars') == 0).count(),
+  one=pl.col('nocars').filter(pl.col('nocars') == 1).count(),
+  two=pl.col('nocars').filter(pl.col('nocars') == 2).count(),
+  three=pl.col('nocars').filter(pl.col('nocars') == 3).count(),
+  four=pl.col('nocars').filter(pl.col('nocars') == 4).count(),
+).rename({"zero": "0", "one": "1", "two": "2", "three": "3", "four": "4"}).sort("stories")
+
+display(grouped)
+
+grouped_lf = grouped.unpivot(index='stories', variable_name='cars', value_name='count')
+
+grouped_lf = grouped_lf.with_columns(
+    (pl.col("count").cast(pl.String)).alias('count_label')
+  )
+
+plot_story1 = (
+  ggplot(grouped_lf.filter(pl.col('stories') == 1))
+  + geom_bar(aes(x='count', y='cars'), stat='identity', orientation='y', color='dark_blue', fill='dark_blue')
+  + scale_x_continuous(limits=[0, grouped_lf.filter(pl.col('stories') == 1)['count'].max() * 1.5])
+  + ggtitle('1 Story')
+  + labs(
+    x='',
+    y='Number of cars in a garage'
+  )
+  + geom_text(aes(x='count', y='cars', label='count_label'), nudge_x=1500, size=8, color='black')
+)
+
+plot_story2 = (
+  ggplot(grouped_lf.filter(pl.col('stories') == 2))
+  + geom_bar(aes(x='count', y='cars'), stat='identity', orientation='y', color='dark_green', fill='dark_green')
+  + scale_x_continuous(limits=[0, grouped_lf.filter(pl.col('stories') == 2)['count'].max() * 1.5])
+  + ggtitle('2 Stories')
+  + labs(
+    x='',
+    y=''
+  )
+  + geom_text(aes(x='count', y='cars', label='count_label'), nudge_x=1250, size=8, color='black')
+)
+
+plot_story3 = (
+  ggplot(grouped_lf.filter(pl.col('stories') == 3))
+  + geom_bar(aes(x='count', y='cars'), stat='identity', orientation='y', color='cyan', fill='cyan')
+  + scale_x_continuous(limits=[0, grouped_lf.filter(pl.col('stories') == 3)['count'].max() * 1.35])
+  + ggtitle('3 Stories')
+  + labs(
+    x='',
+    y=''
+  )
+  + geom_text(aes(x='count', y='cars', label='count_label'), nudge_x=100, size=8, color='black')
+)
+
+plot_story4 = (
+  ggplot(grouped_lf.filter(pl.col('stories') == 4))
+  + geom_bar(aes(x='count', y='cars'), stat='identity', orientation='y', color='orange', fill='orange')
+  + scale_x_continuous(limits=[0, grouped_lf.filter(pl.col('stories') == 4)['count'].max() * 1.25])
+  + ggtitle('4 Stories')
+  + labs(
+    x='',
+    y=''
+  )
+  + geom_text(aes(x='count', y='cars', label='count_label'), nudge_x=5, size=8, color='black')
+)
+
+combined = (
+  gggrid([plot_story1, plot_story2, plot_story3, plot_story4])
+  + labs(
+    title="Number of houses by stories and size of garage",
+    subtitle="Each group is the number of stories and their respective counts."
+  )
+  + theme(
+      panel_background=element_rect(fill='gray', linetype=0),
+      plot_background=element_rect(fill='gray'),
+      panel_grid=element_blank(),
+      legend_background=element_rect(fill='gray'),
+      axis_text=element_text(color='black', size=18),
+      plot_title=element_text(color='black', face="bold", hjust=0, size=25),
+      plot_subtitle=element_text(color='black', hjust=0, size=20),
+      legend_text=element_text(color='white'),
+      legend_title=element_text(color='white'),
+      label_text=element_text(color='white'),
+      axis_line_x=element_blank(),
+      axis_ticks_x=element_blank(),
+      axis_text_x=element_blank(),
+      plot_title_position='plot',
+      text=element_text(color='black'),
+      strip_text=element_text(face='bold', size=20)
+  ) 
+  + ggsize(1800, 1500)
+)
+display(combined)
+```
+
+## QUESTION 3
+
+3. __Using the flight data, complete the following:__
+> _Predict something of your own choice_
+> _Create training and test data using `train_test_split` with the following arguments: `test_size = .33` and `random_state = 1936`._
+> _Use `GradientBoostingClassifier()` to build a machine learning model_
+> _Report your accuracy and a feature importance plot with the top 10 most important features_
+
+_Model is 93% accurate at predicting the airport code based on the rest of the data._
+
+```{python}
+# Include and execute your code here
+url2 = "https://github.com/byuidatascience/data4missing/raw/master/data-raw/flights_missing/flights_missing.json"
+flights_json = pl.read_json("flights_missing.json")
+```
+
+```{python}
+# Data cleaning
+flights_json = flights_json.with_columns(
+    pl.col('year').fill_null(strategy='backward')
+)
+
+flights_json = flights_json.with_columns(
+    pl.col('month').replace({'Febuary': 'February'}).alias('month')
+)
+
+# predicting months:
+flights_json = flights_json.with_columns(
+    pl.when((pl.col('month') == 'n/a') & (pl.col('month').shift(1) == pl.col('month').shift(-1)) & (pl.col('month').shift(1) != 'n/a'))
+    .then(pl.col('month').shift(1))
+    .when((pl.col('month') == 'n/a') & (pl.col('airport_code') < pl.col('airport_code').shift(1)) & (pl.col('month').shift(-1) != 'n/a'))
+    .then(pl.col('month').shift(-1))
+    .when((pl.col('month') == 'n/a') & (pl.col('airport_code') > pl.col('airport_code').shift(1)) & (pl.col('month').shift(1) != 'n/a'))
+    .then(pl.col('month').shift(1))
+    .when((pl.col('month') == 'n/a') & (pl.col('airport_code') < pl.col('airport_code').shift(-1)) & (pl.col('month').shift(-1) != 'n/a'))
+    .then(pl.col('month').shift(-1))
+    .otherwise(pl.col('month'))
+    .alias('month')
+)
+
+# Fixing airport names:
+airports = flights_json.select(['airport_code', 'airport_name']).filter((pl.col('airport_name') != "")).unique().sort(by='airport_code', descending=False)
+airport_dic = dict(zip(airports['airport_code'], airports['airport_name']))
+flights_json = flights_json.with_columns(airport_name=pl.col('airport_code').replace(airport_dic))
+
+# Fixing minute delays:
+flights_json = flights_json.with_columns(
+    pl.col('minutes_delayed_nas').fill_null(-999.0),
+    pl.col('minutes_delayed_carrier').fill_null(-999.0)
+)
+
+adj = pl.col('minutes_delayed_total') - pl.col('minutes_delayed_weather') - pl.col('minutes_delayed_security') - pl.col('minutes_delayed_late_aircraft')
+
+flights_json = flights_json.with_columns(
+    pl.when((pl.col('minutes_delayed_carrier') < 0) & (pl.col('minutes_delayed_nas') > 0))
+    .then(adj - pl.col('minutes_delayed_nas'))
+    .when((pl.col('minutes_delayed_carrier') < 0) & (pl.col('minutes_delayed_nas') < 0))
+    .then((adj) / 2)
+    .otherwise(pl.col('minutes_delayed_carrier'))
+    .alias('minutes_delayed_carrier')
+)
+
+flights_json = flights_json.with_columns(
+    pl.when(pl.col('minutes_delayed_nas') < 0)
+    .then(adj - pl.col('minutes_delayed_carrier'))
+    .otherwise(pl.col('minutes_delayed_nas'))
+    .alias('minutes_delayed_nas')
+)
+
+# Fixing number of delays
+flights_json = flights_json.with_columns(
+    num_of_delays_carrier=pl.col('num_of_delays_carrier').replace('1500+', '-999')
+)
+
+flights_json = flights_json.with_columns(
+    pl.col('num_of_delays_carrier').cast(pl.Int64).alias('num_of_delays_carrier')
+)
+
+adj_num = pl.col('num_of_delays_total') - pl.col('num_of_delays_weather') - pl.col('num_of_delays_security') - pl.col('num_of_delays_nas')
+
+flights_json = flights_json.with_columns(
+    pl.when((pl.col('num_of_delays_late_aircraft') < 0) & (pl.col('num_of_delays_carrier') > 0))
+    .then(adj_num - pl.col('num_of_delays_carrier'))
+    .when((pl.col('num_of_delays_late_aircraft') < 0) & (pl.col('num_of_delays_carrier') < 0))
+    .then(((adj_num) / 2).cast(pl.Int64))
+    .otherwise(pl.col('num_of_delays_late_aircraft'))
+    .alias('num_of_delays_late_aircraft')
+)
+
+flights_json = flights_json.with_columns(
+    pl.when((pl.col('num_of_delays_carrier') < 0) & (pl.col('num_of_delays_late_aircraft') > 0))
+    .then(adj_num - pl.col('num_of_delays_late_aircraft'))
+    .otherwise(pl.col('num_of_delays_carrier'))
+    .alias('num_of_delays_carrier')
+)
+```
+
+```{python}
+enc_lab = LabelEncoder()
+enc_lab_ar = enc_lab.fit_transform(flights_json['month'])
+df_alt = flights_json.with_columns(
+  month=pl.Series(enc_lab_ar)
+)
+
+X = df_alt.drop(['airport_code', 'airport_name'])
+y = df_alt.select('airport_code')
+
+X_trn, X_tst, y_trn, y_tst = train_test_split(X, y, test_size=0.33, random_state=1936)
+
+model = GradientBoostingClassifier(random_state=1936)
+model.fit(X_trn, y_trn)
+preds = model.predict(X_tst)
+print(classification_report(y_tst, preds))
+
+importances = pl.DataFrame({
+  'Feature': X.columns,
+  'Importance': model.feature_importances_
+  }).sort('Importance', descending=True)
+
+top_ten = importances.head(10)
+
+import_graph = (
+    ggplot(data=top_ten)
+    + geom_bar(mapping=aes(x='Feature', y='Importance'), stat='identity', color="cyan", fill="cyan")
+    + labs(
+      title="Top Ten Features Importance",
+      subtitle="Of 15 features that impact the model these are the top ten.",
+      x='',
+      y='Importance'
+    )
+    + scale_y_continuous(limits=[0,0.9])
+    + geom_text(aes(x='Feature', y='Importance', label='Importance'), size=8, color='black', label_format='.3f', nudge_y=0.05)
+    + theme(
+        panel_background=element_rect(fill='gray', linetype=0),
+        plot_background=element_rect(fill='gray'),
+        panel_grid=element_blank(),
+        legend_background=element_rect(fill='gray'),
+        axis_text=element_text(color='black', size=18),
+        plot_title=element_text(color='black', face="bold", hjust=0, size=25),
+        plot_subtitle=element_text(color='black', hjust=0, size=20),
+        legend_text=element_text(color='white'),
+        legend_title=element_text(color='white'),
+        label_text=element_text(color='white'),
+        axis_text_x=element_text(angle=60),
+        plot_title_position='plot'
+    )
+    + ggsize(1600, 1500)
+)
+
+display(import_graph)
+```
+
+## Question 4
+
+4. __Recreate the following image with the flights data:__
+`>` _Titles (chart and axis)_
+`>` _Axis (same data types)_
+`>` _Box Plot (colors)_
+
+_Describe response._
+
+```{python}
+# Include and execute your code here
+
+```
