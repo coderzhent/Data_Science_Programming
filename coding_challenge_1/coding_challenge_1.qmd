@@ -146,7 +146,7 @@ plot_story4 = (
     x='',
     y=''
   )
-  + geom_text(aes(x='count', y='cars', label='count_label'), nudge_x=5, size=8, color='black')
+  + geom_text(aes(x='count', y='cars', label='count_label'), nudge_x=8, size=8, color='black')
 )
 
 combined = (
@@ -181,10 +181,14 @@ display(combined)
 ## QUESTION 3
 
 3. __Using the flight data, complete the following:__
-> _Predict something of your own choice_
-> _Create training and test data using `train_test_split` with the following arguments: `test_size = .33` and `random_state = 1936`._
-> _Use `GradientBoostingClassifier()` to build a machine learning model_
-> _Report your accuracy and a feature importance plot with the top 10 most important features_
+
+\> _Predict something of your own choice_
+
+\> _Create training and test data using `train_test_split` with the following arguments: `test_size = .33` and `random_state = 1936`._
+
+\> _Use `GradientBoostingClassifier()` to build a machine learning model_
+
+\> _Report your accuracy and a feature importance plot with the top 10 most important features_
 
 _Model is 93% accurate at predicting the airport code based on the rest of the data._
 
@@ -333,9 +337,12 @@ display(import_graph)
 ## Question 4
 
 4. __Recreate the following image with the flights data:__
-`>` _Titles (chart and axis)_
-`>` _Axis (same data types)_
-`>` _Box Plot (colors)_
+
+\> _Titles (chart and axis)_
+
+\> _Axis (same data types)_
+
+\> _Box Plot (colors)_
 
 _Describe response._
 

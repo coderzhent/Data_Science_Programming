@@ -26,7 +26,6 @@ execute:
 ---
 
 ```{python}
-import random
 import polars as pl
 import numpy as np
 from lets_plot import *
@@ -40,7 +39,6 @@ from sklearn.metrics import (
   precision_score, 
   f1_score
   )
-# add the additional libraries you need to import for ML here
 
 LetsPlot.setup_html(isolated_frame=True)
 ```
@@ -48,62 +46,107 @@ LetsPlot.setup_html(isolated_frame=True)
 
 ```{python}
 # import your data here using pandas and the URL
-url = "https://github.com/fivethirtyeight/data/raw/master/star-wars-survey/StarWars.csv"
-df = pl.read_csv("StarWars.csv")
-```
-
-
-```{python}
-# Include and execute your code here
-
+url = "https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv"
+url2 = "https://github.com/byuidatascience/data4dwellings/raw/master/data-raw/dwellings_ml/dwellings_ml.csv"
+df = pl.read_csv(url, infer_schema_length=100000)
+df2 = pl.read_csv(url2)
 ```
 
 ## QUESTION 1
 
-1. __Question__
+1. __Recreate an image of the history of Peter in Utah and Oregon:__
 
-_Describe response._
+_Titles (chart and axis)_
+_Axis (same data types)_
+_Lines (colors)_
+_Annotation lines and text_
 
 ```{python}
 # Include and execute your code here
+df_peter = df.filter(pl.col('name').is_in(["Peter"])).select(["name", "year", "UT", "OR"])
+peter_graph = (
+    ggplot(data=df_peter)
+    + geom_line(mapping = aes(x = 'year', y = 'UT'), color='red')
+    + geom_line(mapping = aes(x = 'year', y = 'OR'), color='orange')
+    + scale_x_continuous(limits=[1910,2025], format = 'd', expand=[0, 0])
+    + scale_y_continuous(format='d')
+    + labs(
+        title="The history of Peter for Utah (red) and Oregon (orange)",
+        x='Year name given',
+        y='Count of Peter'
+    )
+    + geom_text(x = 1936, y = 50, label="1936", hjust="right", size=6, nudge_x= -2)
+    + geom_text(x = 1972, y = 85, label="1972", hjust="right", size=6, nudge_x= -2)
+    + geom_text(x = 2005, y = 75, label="2005", hjust="right", size=6, nudge_x= -2)
+    + geom_vline(xintercept=1936, color="black", linetype="solid")
+    + geom_vline(xintercept=1972, color="black", linetype="solid")
+    + geom_vline(xintercept=2005, color="black", linetype="solid")
+    + ggsize(1600, 900)
+)
+display(peter_graph)
 
+sv = ggsave(peter_graph, filename="peters.svg", path="./plots/")
 ```
 
 ## Question 2
 
-2. __Question__
-
-_Describe response._
+2. __Calculate the mean after replacing missing values with the standard deviation.__
 
 ```{python}
 # Include and execute your code here
-
+problem = pl.Series([np.nan, 18, 22, 45, 31, np.nan, 85, 38, 129, 8000, 22, 2])
+stdev = problem.filter(problem.is_not_nan()).std()
+problem = problem.fill_nan(stdev)
+mean = problem.mean()
+print(f"Mean found: {mean:.2f} from a standard deviation of: {stdev:.2f}")
 ```
+
 ## QUESTION 3
 
-3. __Question__
+3. __Split the `age` ranges into a data frame with two columns and re-create a chart__
+
+_Titles (axis)_
 
 _Describe response._
 
 ```{python}
 # Include and execute your code here
+ages = pl.Series(["10-25", "10-25", "26-35", "56-85", "0-9", "46-55",
+"56-85", "0-9", "26-35", "56-85", "0-9", "10-25"])
 
+cnts = ages.value_counts().sort('')
+new_ages = cnts.with_columns(
+  pl.when(pl.col('') == "56-85")
+  .then(0)
+  .otherwise(pl.col('count'))
+  .alias('young')
+).with_columns(
+  pl.when(pl.col('') == "0-9")
+  .then(0)
+  .otherwise(pl.col('count'))
+  .alias('old')
+)
+new_ages = new_ages.rename({'': 'ages'})
+box_df = new_ages.select(['young', 'old']).unpivot()
+
+box_plt = (
+  ggplot(data=box_df, mapping=aes(x="variable", y="value")) 
+  + geom_boxplot()
+)
+
+display(box_plt)
+
+sv = ggsave(box_plt, filename="box.svg", path="./plots/")
 ```
 
 ## Question 4
 
-4. __Question__
+4. __Use the dwellings ml data to complete the following:__
 
-_Describe response._
-
-```{python}
-# Include and execute your code here
-
-```
-
-## Question 5
-
-5. __Question__
+_Predict if a home is more than two bathrooms_
+_Use `test_size = .30` and `random_state = 2021` in `train_test_split()`_
+_Use the `RandomForestClassifier()` method_
+_Report your accuracy and a feature importance plot with the top 10 most important features_
 
 _Describe response._
 
