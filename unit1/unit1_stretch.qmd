@@ -1,5 +1,5 @@
 ---
-title: "Stretch - Elliot"
+title: "Client Report - Elliot"
 subtitle: "Unit 1 Stretch"
 author: "Ezekial Curran"
 format:
@@ -25,6 +25,18 @@ execute:
     
 ---
 
+## Background
+
+Through history names at one point or another were considered new or novel. Overtime certain names came into a pool of commonly used names that parents would then pull from rather than coming up with a new one.
+
+With the rise of Christianity, certain trends in naming practices manifested. Christians were encouraged to name their children after saints and martyrs of the church. These early Christian names can be found in many cultures today, in various forms. These were spread by early missionaries throughout the Mediterranean basin and Europe.
+
+By the Middle Ages, the Christian influence on naming practices was pervasive. Each culture had its pool of names, which were a combination of native names and early Christian names that had been in the language long enough to be considered native. Now the question isn't just what are native names but what are the greatest influences of parents naming their children? [ref](https://heraldry.sca.org/names/namehist.html)
+
+The data is stored in a CSV file that gives the number of times a specific name was given to a child in a specific year.
+
+## Imports and Functions
+
 ```{python}
 import pandas as pd
 import polars as pl
@@ -35,6 +47,7 @@ LetsPlot.setup_html(isolated_frame=True)
 ```
 
 ```{python}
+# Data Dictionary: https://github.com/byuidatascience/data4names/blob/master/data.md
 # df_url = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
 df = pd.read_csv("names_year.csv")
 
@@ -43,12 +56,13 @@ df_pl = pl.read_csv("names_year.csv", infer_schema_length=100000)
 ```
 
 
-## QUESTION 1
+## Question 1
 
-1. __Reproducing the Elliot chart from the assignmet page by using the names_year.csv file.__  
+1. __Create a chart using the data on the use of the name Elliot. Compare its use with the releases of the movie E.T.__  
 
 ```{python}
 # Pandas
+print(f"Creating the graph using a Pandas DataFrame\n")
 df_ell = df.query('name == ["Elliot"]')
 ell = (
     ggplot(data=df_ell)
@@ -74,7 +88,7 @@ ell = (
 display(ell)
 ggsave(ell, filename="elliot_pandas.svg", path="./plots/")
 # Polars
-print(f"\nUsing Polars")
+print(f"\nUsing a Polars DataFrame")
 df_ell_pl = df_pl.filter(pl.col('name').is_in(["Elliot"]))
 ell_pl = (
     ggplot(data=df_ell_pl)

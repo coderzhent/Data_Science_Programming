@@ -25,6 +25,18 @@ execute:
     
 ---
 
+## Background
+
+In 2003 the Bureau of Transportation Statistics (BTS) began collecting data on the causes of delayed flights. The categories they use are Air Carrier, National Aviation System, Weather, Late-Arriving Aircraft, and Security. You can visit the [BTS website](https://www.bts.gov/topics/airlines-and-airports/understanding-reporting-causes-flight-delays-and-cancellations) to read definitions of these categories.
+
+Using a JSON file containing information on delays at 7 airports over 10 years, the goal is to clean the data and search for insights about flight delays. Also, show which airports have the worst delays then determine the best month to fly if one wants to avoid delays of any length.
+
+
+## Links
+[Types of Delay](https://aspm.faa.gov/aspmhelp/index/Types_of_Delay.html)
+
+## Imports and Functions
+
 ```{python}
 import polars as pl
 import numpy as np
@@ -127,9 +139,9 @@ flights_json = flights_json.with_columns(
 ```
 
 
-## QUESTION 1
+## Question 1
 
-__Which delay is the worst delay?__ Build on the analysis you already did regarding Weather Delay. This time though, instead of comparing one type of delay across multiple airports, we want to compare Weather Delay (an involved calculation that you already did in a previous task) with Carrier Delay and Security Delay (both of which are in the dataset and don’t need fancy calculations like Weather did). Compare the proportion of delay for each of the three categories in a Chart and a Table. Describe your results.
+__Which delay is the worst delay?__ Compare weather delays with carrier and security delays. Compare the proportion of delay for each of the three categories in a Chart and a Table.
 
 Weather delays make up 73% of all delays, whereas security delays make up less than 1%. Carrier delays result in a little over a quarter of the delays people encounter while flying.
 
@@ -161,8 +173,7 @@ delays_lf = delays.unpivot(index=[], variable_name='columns', value_name='values
 
 delays_lf = delays_lf.sort('values', descending=True)
 
-delays_lf
-
+display(delays_lf.head(7))
 ```
 
 ```{python}
@@ -193,14 +204,14 @@ delay_bar = (
         + ggsize(1600, 900)
 )
 
-delay_bar
+display(delay_bar)
 ```
 
 ## Question 2
 
-__Create another chart that shows the proportion of delays for each reason (Weather, Carrier, and Security) across all 7 airports. Describe your results.__
+__Create another chart that shows the proportion of delays for each reason (Weather, Carrier, and Security) across all 7 airports.__
 
-For all airports the biggest contributor to delays is the weather. Some airports are more impacted by weather delays than by carrier compared to other airports and vice versa.
+For all airports the biggest contributor to delays is the weather. Some airports are more impacted by weather delays than by carrier compared to other airports due to their location.
 
 ```{python}
 delay_airport = flights_json.group_by('airport_code').agg(
@@ -213,7 +224,7 @@ delay_airport = flights_json.group_by('airport_code').agg(
 
 delay_airport_lf = delay_airport.unpivot(index='airport_code', variable_name='delay', value_name='value')
 
-delay_airport
+display(delay_airport.head(7))
 ```
 
 
@@ -246,5 +257,5 @@ delay_air_bar = (
         + ggsize(1600, 960)
 )
 
-delay_air_bar
+display(delay_air_bar)
 ```

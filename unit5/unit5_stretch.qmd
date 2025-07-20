@@ -25,6 +25,20 @@ execute:
     
 ---
 
+## Background
+Survey data is notoriously difficult to munge. Even when the data is recorded cleanly the options for ‘write in questions’, ‘choose from multiple answers’, ‘pick all that are right’, and ‘multiple choice questions’ makes storing the data in a tidy format difficult.
+
+In 2014, FiveThirtyEight surveyed over 1000 people to write the article titled, America’s Favorite ‘Star Wars’ Movies (And Least Favorite Characters). They have provided the data on GitHub.
+
+For this project, the goal is to validate the data provided on GitHub lines up with the articel be recreating at least two of the visuals and predict if a person from the survey makes at least $50k.
+
+## Links
+[Link to article](https://fivethirtyeight.com/features/americas-favorite-star-wars-movies-and-least-favorite-characters/)
+
+[Link to data on GitHub](https://github.com/fivethirtyeight/data/raw/master/star-wars-survey/StarWars.csv)
+
+## Imports and Functions
+
 ```{python}
 import random
 import polars as pl
@@ -382,14 +396,15 @@ y = df_tot.select('income')
 X_all = enc_all_df
 y_all = df_all.select('income')
 
-display(df_clean)
+print(f"Here is a data preview.")
+display(df_clean.head(7))
 ```
 
-## QUESTION 1
+## Question 1
 
 1. __Build a machine learning model that predicts whether a person makes at least $50k with accuracy of at least 65%. Describe your model and report the accuracy.__
 
-The gradient boosting classifier model was used on the data. Limiting the n_estimators to 50 gave better results than increasing it, the accuracy of the model is 69%.
+The gradient boosting classifier model was used on the data. Limiting the n_estimators to 50 gave better results than increasing it, the accuracy of the model acheived 69%. Which isn't all that good, but the data has a lot of missing values and the dataset of non missing values isn't all that large.
 
 ```{python}
 # Include and execute your code here
@@ -408,9 +423,9 @@ print(classification_report(y_tst, model))
 # FindMdls(X_trn, X_tst, y_trn, y_tst)
 ```
 
-## QUESTION 2
+## Question 2
 
-2. __Validate the data provided on GitHub lines up with the article by recreating a 3rd visual from the article.__
+2. __Validate that the data provided on GitHub lines up with the article by recreating a 3rd visual from the article.__
 
 Using the data provided on GitHub, all 5 graphs from the article can be recreated. However, there are a few points of rounding error from some of the graphs but they ultimately refelct the results from the article.
 
@@ -599,7 +614,7 @@ display(shot_graph)
 
 3. __Create a new column that converts the location groupings to a single number (a.k.a. label encoding). Drop the location categorical column.__
 
-Changing the encoder for location from One Hot encoding to Label Encoding puts all the locations as a single column with integers representing each location. Using Label Encoding could imply order in the locations which isn't truely representative, and training a new model with everything else the same except the location does hurt the models performance.
+Changing the encoder for location from One Hot encoding to Label Encoding puts all the locations as a single column with integers representing each location. Using Label Encoding could imply ordinality in the locations which isn't quite true, and training a new model with everything else the same except the location does hurt the models performance.
 
 ```{python}
 alt_cols = ['seen', 'fan', 'seen_epi_i', 'seen_epi_ii', 'seen_epi_iii', 'seen_epi_iv', 'seen_epi_v', 'seen_epi_vi', 'shot_first', 'ex_uni', 'fan_ex_uni', 'fan_star_trek', 'gender', 'education']
